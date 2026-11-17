@@ -1,0 +1,10 @@
+Tabelas dos dados abertos do CENIPA ("Ocorrências Aeronáuticas na Aviação Civil Brasileira",
+https://dados.gov.br/dados/conjuntos-dados/ocorrencias-aeronauticas-da-aviacao-civil-brasileira).
+Separador ';', codificação latin-1. Ocorrências de 01/01/2007 a 09/05/2026.
+
+Estes arquivos NÃO foram baixados do portal oficial: são a cópia redistribuída no repositório
+github.com/olegantonov/cenipa-ga-accident-severity (pasta dataset/, commit de 06/07/2026, dados CC BY 4.0),
+usada porque o portal não estava acessível no ambiente em que o pipeline foi montado.
+links_relatorios.csv (número do relatório final -> PDF) foi derivado de links_reais.json do mesmo repositório.
+Antes da entrega, rode `python src/01_extrair_bases.py cenipa` para tentar a versão oficial atual,
+ou baixe os quatro CSV manualmente do portal para esta pasta.

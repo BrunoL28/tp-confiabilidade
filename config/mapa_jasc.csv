@@ -1,0 +1,33 @@
+jasc_prefixo,descricao,pistao,turboelice,turbofan
+61,Hélice,helice_governador,helice_governador,
+7160,Admissão de ar do motor,admissao,entrada_ar,
+7210,Caixa de redução,,caixa_reducao,
+7220,Entrada de ar / fan,,entrada_ar,fan
+7230,Compressor,,compressor,compressores
+7240,Câmara de combustão,,camara_combustao,camara_combustao
+7250,Turbinas,,turbinas,turbinas
+7260,Acionamento de acessórios,,lubrificacao,caixa_acessorios
+7261,Sistema de óleo do motor a turbina,,lubrificacao,lubrificacao
+7310,Distribuição de combustível do motor,carburador_injecao,combustivel_fcu,combustivel
+7314,Bomba de combustível do motor,bombas,combustivel_fcu,combustivel
+7320,Controle de combustível,carburador_injecao,combustivel_fcu,combustivel
+7321,Controle de combustível - turbina,,combustivel_fcu,combustivel
+7322,Controle de combustível - pistão (carburador),carburador_injecao,,
+7323,Governador de turbina,,combustivel_fcu,combustivel
+7324,Divisor de combustível,carburador_injecao,combustivel_fcu,combustivel
+7414,Magneto / distribuidor,magnetos,,
+74,Ignição (demais),magnetos,,
+7600,Controles do motor (FADEC/EEC nos turbofans),,combustivel_fcu,fadec
+79,Óleo do motor,lubrificacao,lubrificacao,lubrificacao
+83,Caixa de acessórios,,lubrificacao,caixa_acessorios
+8510,Motor a pistão - seção frontal,nucleo,,
+8520,Motor a pistão - seção de potência,nucleo,,
+8530,Motor a pistão - cilindros,nucleo,,
+8540,Motor a pistão - seção traseira,nucleo,,
+8550,Motor a pistão - sistema de óleo,lubrificacao,,
+8560,Motor a pistão - compressor de sobrealimentação,admissao,,
+8570,Motor a pistão - arrefecimento líquido,arrefecimento,,
+81,Turbocompressor,admissao,,
+731,Distribuição de combustível (demais: bicos injetores etc.),carburador_injecao,combustivel_fcu,combustivel
+732,Controle de combustível (demais),carburador_injecao,combustivel_fcu,combustivel
+753,Controle do compressor (sangria / VSV / VBV),,compressor,compressores

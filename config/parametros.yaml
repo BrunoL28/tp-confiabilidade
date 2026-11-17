@@ -1,0 +1,14 @@
+# Parâmetros gerais do modelo (Seção IV da proposta)
+unidade_taxa: 1.0e-5        # taxas_literatura.csv está em falhas por 10^5 h
+missoes_h: [1, 1000]        # um voo de 1 h e um ano de 1000 h
+beta: {min: 0.01, nom: 0.10, max: 0.30}   # fração de causa comum nos pares redundantes (faixa assumida)
+# Como tratar a taxa publicada do motor inteiro:
+#   false -> leitura literal da proposta: toda a taxa vai para os blocos em série e os pares entram por cima
+#   true  -> a taxa publicada é preservada em 1 h: os blocos em série recebem (taxa - contribuição dos pares)
+calibrar_total: true
+semente_amostra: 20261116   # sorteio dos 50 relatórios de pistão
+tamanho_amostra_pistao: 50
+n_dupla_classificacao: 10
+# Gama-Poisson (taxas absolutas): só roda se houver exposição em horas de voo. O CENIPA não traz horas.
+exposicao_horas: {pistao: null, turboelice: null, turbofan: null}
+forca_prior: 20             # pseudo-contagens do prior (literatura) na atualização das frações

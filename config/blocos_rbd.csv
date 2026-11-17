@@ -1,0 +1,28 @@
+motor,bloco,rotulo,estrutura,grupo,frac_min,frac_nom,frac_max,lu_min,lu_nom,lu_max,origem_do_valor
+pistao,admissao,Admissão,serie,,0.03,0.08,0.15,,,,PROVISORIO
+pistao,bomba_mecanica,Bomba mecânica,paralelo,bombas,,,,1e-5,3e-5,1e-4,FAIXA ASSUMIDA
+pistao,bomba_eletrica,Bomba elétrica,paralelo,bombas,,,,1e-5,3e-5,1e-4,FAIXA ASSUMIDA
+pistao,carburador_injecao,Carburador / injeção,serie,,0.12,0.22,0.32,,,,PROVISORIO
+pistao,magneto_1,Magneto 1,paralelo,magnetos,,,,1e-5,5e-5,2e-4,FAIXA ASSUMIDA
+pistao,magneto_2,Magneto 2,paralelo,magnetos,,,,1e-5,5e-5,2e-4,FAIXA ASSUMIDA
+pistao,nucleo,"Cilindros, válvulas, pistões, virabrequim",serie,,0.30,0.42,0.55,,,,PROVISORIO
+pistao,lubrificacao,Lubrificação,serie,,0.08,0.15,0.25,,,,PROVISORIO
+pistao,arrefecimento,Arrefecimento,serie,,0.01,0.03,0.08,,,,PROVISORIO
+pistao,helice_governador,Hélice e governador,serie,,0.03,0.10,0.15,,,,PROVISORIO
+turboelice,entrada_ar,Entrada de ar,serie,,0.01,0.03,0.08,,,,PROVISORIO
+turboelice,compressor,Compressor,serie,,0.08,0.15,0.25,,,,PROVISORIO
+turboelice,camara_combustao,Câmara de combustão,serie,,0.02,0.05,0.10,,,,PROVISORIO
+turboelice,turbinas,Turbinas (compressor e livre),serie,,0.15,0.30,0.50,,,,PROVISORIO
+turboelice,caixa_reducao,Caixa de redução,serie,,0.05,0.12,0.20,,,,PROVISORIO
+turboelice,helice_governador,Hélice e governador,serie,,0.05,0.12,0.20,,,,PROVISORIO
+turboelice,combustivel_fcu,Combustível (FCU),serie,,0.08,0.15,0.25,,,,PROVISORIO
+turboelice,lubrificacao,Lubrificação,serie,,0.03,0.08,0.15,,,,PROVISORIO
+turbofan,fan,Fan,serie,,0.03,0.08,0.15,,,,PROVISORIO
+turbofan,compressores,Compressores LP e HP,serie,,0.10,0.20,0.30,,,,PROVISORIO
+turbofan,camara_combustao,Câmara de combustão,serie,,0.02,0.05,0.10,,,,PROVISORIO
+turbofan,turbinas,Turbinas HP e LP,serie,,0.10,0.20,0.30,,,,PROVISORIO
+turbofan,fadec_a,FADEC A,paralelo,fadec,,,,1e-6,1e-5,5e-5,FAIXA ASSUMIDA
+turbofan,fadec_b,FADEC B,paralelo,fadec,,,,1e-6,1e-5,5e-5,FAIXA ASSUMIDA
+turbofan,combustivel,Combustível,serie,,0.10,0.20,0.30,,,,PROVISORIO
+turbofan,lubrificacao,Lubrificação,serie,,0.08,0.17,0.28,,,,PROVISORIO
+turbofan,caixa_acessorios,Caixa de acessórios,serie,,0.04,0.10,0.18,,,,PROVISORIO

@@ -1,0 +1,19 @@
+[project]
+name = "tp-confiabilidade"
+version = "0.1.0"
+description = "Confiabilidade de motores aeronáuticos (pistão, turboélice e turbofan): RBD, dados do CENIPA, SDRS e NTSB"
+readme = "README.md"
+authors = [
+    { name = "BrunoL28", email = "brunolima280103@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.5",
+    "openpyxl>=3.1.5",
+    "pandas>=3.1.1",
+    "pdfplumber>=0.11.10",
+    "pyyaml>=6.0.3",
+    "requests>=2.34.2",
+    "scipy>=1.18.1",
+]

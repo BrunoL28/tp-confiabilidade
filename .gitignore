@@ -1,0 +1,14 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# NTSB bruto: 630 MB, só serve para regerar os CSV que já estão em data/raw/ntsb/
+data/raw/ntsb/avall.mdb
+data/raw/ntsb/avall.zip

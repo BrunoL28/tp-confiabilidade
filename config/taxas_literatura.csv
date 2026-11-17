@@ -1,0 +1,4 @@
+motor,lambda_min,lambda_nom,lambda_max,fonte
+pistao,10,12.4,100,"Nominal: média de Lycoming 12,7 e Continental 12,1 (ATSB AR-2013-107, ref. [3]); faixa 10-100 da estimativa FAA citada em [2]"
+turboelice,0.15,0.15,1.0,"Nominal e mínimo: PT6 em 2016, ~0,15 (ref. [4]); o acumulado 1963-2016 (1 por 333.333 h = 0,30) fica dentro da faixa; máximo: exigência SET-IMC (ref. [6])"
+turbofan,0.10,0.20,2.0,"Nominal: CFM56-7B, 0,002 IFSD por 1000 h, frota de mais de 8.615 motores e 160 milhões de horas (CFM International, comunicado de 6/6/2012, ref. [11] - fonte de fabricante, sem estatística independente da FAA/EASA; o comunicado de 2002 dava 0,003, dentro da faixa); mínimo assumido; máximo: limite ETOPS 180 min (ref. [5])"
