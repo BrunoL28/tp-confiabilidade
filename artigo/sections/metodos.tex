@@ -1,0 +1,126 @@
+\section{Materiais e Métodos}\label{sec:metodos}
+
+\begin{figure*}[t]
+  \centering
+  \resizebox{\textwidth}{!}{\input{figures/rbd}}
+  \caption{Diagramas de blocos de confiabilidade dos três motores. Blocos empilhados formam um par redundante, que só falha se as duas unidades falharem.}
+  \label{fig:rbd}
+\end{figure*}
+
+\subsection{Motores estudados}\label{sec:motores}
+
+Cada tecnologia é representada por um modelo de uso difundido: o Lycoming O-540 (pistão), o Pratt \& Whitney Canada PT6A-34 (turboélice) e o CFM56-7B (turbofan).
+O O-540 tem seis cilindros horizontais opostos, refrigerados a ar, e segue o ciclo de quatro tempos.
+A cada volta, dezenas de peças aceleram, param e invertem o sentido, o que as expõe a fadiga e desgaste~\cite{faa_amt}.
+A ignição é duplicada: cada cilindro tem duas velas, alimentadas por dois magnetos que geram a própria energia e não dependem da bateria~\cite{faa_phak}.
+Na alimentação, a bomba acionada pelo motor é complementada por uma bomba elétrica auxiliar.
+Os demais subsistemas não têm redundância.
+
+O PT6A-34 é um turboélice de turbina livre.
+O gerador de gás retira dos gases apenas a energia que gira o compressor, e a turbina livre, sem ligação mecânica com ele, aciona a hélice por uma caixa de redução~\cite{faa_amt}.
+A unidade de controle de combustível (FCU) dosa o combustível, e um governador ajusta o passo da hélice.
+A ignição só atua na partida e fica fora do modelo; o turboélice não tem blocos redundantes.
+O CFM56-7B, que equipa o Boeing 737 de nova geração, tem dois eixos concêntricos: o de baixa pressão liga o fan e o compressor de baixa à turbina de baixa, e o de alta liga o compressor de alta à turbina de alta.
+O controle é feito por um FADEC (\emph{full authority digital engine control}) de dois canais, cada um capaz de controlar o motor sozinho~\cite{faa_amt}.
+
+\subsection{Diagramas de blocos}\label{sec:rbd}
+
+A Fig.~\ref{fig:rbd} mostra os RBD.
+O evento de falha é a perda de potência que obriga a desligar o motor ou o impede de entregar a potência necessária ao voo.
+Todo subsistema cuja falha, sozinha, provoca esse evento entra em série.
+Em relação à proposta, as duas turbinas do turboélice formam agora um único bloco, porque nem o código JASC do SDRS nem o NTSB as distinguem; com blocos em série e taxa constante, isso não altera $\lambda$, MTBF ou $R(t)$.
+Ficam fora do modelo os sistemas da aeronave, como os tanques, e os componentes sem bloco (escapamento, partida, indicação, berço e controles de cabine).
+
+Supõe-se taxa de falha constante e independência entre blocos, de modo que $R_i(t)=e^{-\lambda_i t}$ e, em série, $R_s=\prod_i R_i$.
+Nos pares redundantes, uma fração $\beta$ da taxa $\lambda_u$ de cada unidade corresponde a causas comuns, como combustível contaminado nas duas bombas ou erro de manutenção repetido nos dois magnetos, que derrubam as duas unidades ao mesmo tempo~\cite{ebeling1997}:
+\begin{equation}
+  R_p(t) = \left[1-\left(1-e^{-(1-\beta)\lambda_u t}\right)^2\right] e^{-\beta\lambda_u t}.
+  \label{eq:beta}
+\end{equation}
+A confiabilidade do motor é o produto de $R_s$ e dos $R_p$, e $\beta$ varia de 0,01 a 0,3, com valor nominal de 0,1.
+Com pares, $R(t)$ deixa de ser exponencial.
+Por isso, o MTBF sem reparo é calculado como a integral de $R(t)$, e o MTBF com o par restaurado a cada voo, como o inverso da taxa equivalente $-\ln R(1\,\mathrm{h})/1\,\mathrm{h}$; o segundo caso corresponde ao cheque de magnetos antes da decolagem.
+Para dois motores na mesma aeronave, aplicamos~\eqref{eq:beta} com o motor no lugar da unidade e um $\beta$ entre motores, que representa causas como combustível contaminado, manutenção feita pela mesma equipe e gelo.
+Nesse caso, o evento é a perda total de propulsão.
+
+\subsection{Taxas totais}\label{sec:taxas}
+
+\begin{table}[t]
+  \caption{Taxas de falha publicadas (falhas \pcmh)}
+  \label{tab:taxas}
+  \centering
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Motor ou exigência & Taxa & Fonte \\
+    \midrule
+    Pistão Lycoming, aviões leves (2009--2014) & 12,7 & \cite{atsb2016} \\
+    Pistão Continental, aviões leves (2009--2014) & 12,1 & \cite{atsb2016} \\
+    Pistão, estimativa da FAA & 10 a 100 & \cite{romeyn2007} \\
+    Turboélice PT6 (2016) & $\approx$0,15 & \cite{stobie2019} \\
+    Turbina, exigência SET-IMC & $<1$ & \cite{easa2017} \\
+    Turbofan CFM56-7B (fabricante) & 0,20 & \cite{cfm2012} \\
+    Turbofan, limite ETOPS de 180 min & $\le 2$ & \cite{cfr25k} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+A taxa total de cada motor vem da literatura (Tabela~\ref{tab:taxas}), com mínimo, nominal e máximo de 10, 12,4 e 100 \pcmh{} para o pistão, 0,15, 0,15 e 1 para o turboélice e 0,10, 0,20 e 2 para o turbofan.
+O nominal do pistão é a média de Lycoming e Continental~\cite{atsb2016}, e o do turbofan vem de um comunicado da CFM~\cite{cfm2012}, sem estatística independente da FAA ou da EASA.
+Os limites regulatórios entram só como máximos, e o mínimo do turbofan é assumido.
+
+A taxa publicada $\lambda$ é preservada em um voo de 1~h: os blocos em série recebem $\lambda_s=\lambda-\sum_p[-\ln R_p(1\,\mathrm{h})]$, isto é, o que sobra depois da contribuição dos pares.
+Uma consequência é que $\beta$ e $\lambda_u$ apenas redistribuem a taxa entre os blocos, sem alterar a probabilidade de falha em 1~h.
+
+\subsection{Frações por subsistema}\label{sec:fracoes}
+
+A taxa $\lambda_s$ é distribuída entre os blocos em série por
+\begin{equation}
+  \lambda_i = \lambda_s \, \frac{n_i}{N_s},
+  \label{eq:fracao}
+\end{equation}
+em que $n_i$ é o número de registros atribuídos ao bloco $i$ e $N_s$ é o total nos blocos em série.
+As contagens somam três fontes.
+Do SDRS~\cite{sdrs}, exportamos os registros de 2007 a 2025 dos três modelos (2746 do Lycoming 540, 269 do PT6A-34 e 6855 do CFM56-7) e os atribuímos aos blocos pelo código JASC.
+Do NTSB~\cite{ntsb} entram os achados do grupo motopropulsor em aviões, classificados pelo texto, para todos os motores de cada tipo.
+Do CENIPA entram os relatórios finais lidos pela equipe (Seção~\ref{sec:cenipa}).
+Os códigos que não identificam o componente (JASC 7200 e 8500 e \emph{power plant (general)} no NTSB) e os relatórios sem causa identificada ficam fora da contagem.
+Ao todo, 6432 registros foram atribuídos a blocos: 4295 do SDRS, 2097 do NTSB e 40 do CENIPA, sendo 3025 do pistão, 218 do turboélice e 3189 do turbofan.
+
+O intervalo de 95\% de cada fração é o de Jeffreys, isto é, os quantis de $\mathrm{Beta}(n_i+\tfrac12,\,N_s-n_i+\tfrac12)$~\cite{brown2001}; ele reflete apenas a incerteza amostral, e não o viés das fontes.
+A taxa de cada unidade redundante foi estimada na mesma escala.
+Cada registro de bloco em série vale $\lambda/N_s$, e o registro de um par se refere a uma das duas unidades, de modo que $\lambda_u = n_p\lambda/(2N_s)$, com $n_p$ registros do par.
+Essa estimativa substituiu o manual de taxas de componentes mecânicos previsto na proposta.
+
+\subsection{Relatórios do CENIPA}\label{sec:cenipa}
+
+A base aberta do CENIPA~\cite{cenipa} classifica as ocorrências pelo tipo, entre eles SCF-PP (falha ou mau funcionamento do grupo motopropulsor), e pelo tipo de motor, mas não informa o componente que falhou nem o tempo de operação.
+Entre 2007 e 9 de maio de 2026, há 826 ocorrências SCF-PP com aviões a pistão, 266 com turboélices e 489 com jatos, das quais 409, 31 e 5 têm relatório final.
+Lemos todos os relatórios de turboélice e de jato e uma amostra aleatória simples de 50 relatórios de pistão (semente 20261116), 86 ao todo.
+Em 11 deles, o PDF disponível não correspondia à ocorrência.
+Dos 75 restantes, extraímos, em planilha padronizada, o modelo do motor, as horas desde a última revisão (TSO), o componente, o bloco do RBD, o modo de falha e a origem; 42 foram atribuídos a um bloco, 22 ficaram indeterminados e 11 ficaram fora do modelo.
+Falhas exclusivamente operacionais, como a pane seca, foram contadas à parte.
+Dez relatórios foram reservados para uma segunda classificação, independente, e a concordância é medida pelo kappa de Cohen~\cite{cohen1960}.
+
+Com o TSO de dez motores a pistão que falharam, ajustamos uma Weibull de dois parâmetros por máxima verossimilhança, com intervalo da forma por \emph{bootstrap} e teste de razão de verossimilhança contra a exponencial~\cite{nist}.
+Como só entram motores que falharam, sem as unidades que continuam em operação, o ajuste é indicativo.
+A mesma base dá a proporção de falhas de motor classificadas como acidente, por tecnologia e número de motores, com intervalo de Wilson~\cite{wilson1927}.
+
+\subsection{Rede bayesiana e atualização das frações}\label{sec:bayes}
+
+O RBD foi convertido em uma rede bayesiana equivalente~\cite{bobbio2001}, com um nó-raiz por bloco em série, três por par (unidades A e B e causa comum) e nós determinísticos até o nó do motor.
+Com no máximo 12 raízes, a distribuição conjunta é enumerada e a inferência é exata.
+A rede responde a duas perguntas: dada a falha do motor, qual bloco é a causa mais provável; e quanto sobe a probabilidade de falha quando uma unidade de um par já está inoperante.
+As frações também foram atualizadas por um modelo Dirichlet--multinomial, com as frações iniciais da proposta como \emph{prior} (20 pseudocontagens).
+A proposta previa ainda atualizar as taxas absolutas por um modelo Gama--Poisson, mas nenhuma das bases traz horas voadas por frota; sem a exposição, essa etapa não foi executada.
+
+\subsection{Sensibilidade e implementação}\label{sec:sensib}
+
+Os índices foram calculados para um voo de 1~h e para um ano de 1000~h, e a sensibilidade leva cada parâmetro ($\lambda$, $\beta$ e $\lambda_u$) do mínimo ao máximo de sua faixa, com os demais no valor nominal.
+Todo o processamento foi feito em Python, em um \emph{pipeline} reprodutível que gera as tabelas e figuras deste artigo a partir dos dados brutos.
+
+\subsection{Declaração de uso de inteligência artificial}\label{sec:ia}
+
+\emph{Ferramenta:} Claude Code, assistente de programação da Anthropic, com o modelo Claude Opus.
+\emph{Finalidade:} escrever e depurar o código Python do \emph{pipeline} (tratamento das bases, contagens, modelo RBD, rede bayesiana, estatística e figuras) e apoiar a redação e a formatação em \LaTeX{} deste artigo.
+\emph{Estratégia:} a equipe definiu o escopo, as hipóteses de modelagem e os critérios de classificação, e leu e classificou os relatórios do CENIPA; a ferramenta produziu código e rascunhos de texto a partir dessas decisões e dos resultados; todo número do texto vem das tabelas geradas pelo \emph{pipeline}, e as referências foram conferidas nas fontes originais.
+\emph{Responsabilidade:} os autores revisaram o código, os resultados e o texto, e respondem integralmente pelo conteúdo do trabalho.

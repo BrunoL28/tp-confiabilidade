@@ -1,0 +1,20 @@
+\section{Revisão da Literatura}\label{sec:revisao}
+
+As ferramentas clássicas de confiabilidade já foram aplicadas a sistemas de propulsão, mas quase sempre com pouca informação de campo.
+Christenson \emph{et al.}~\cite{christenson2000} descrevem o uso de FMEA, árvore de falhas (FTA) e RBD no projeto de sistemas de propulsão aeroespacial e apontam a falta de dados como a principal limitação.
+O trabalho mais próximo do nosso é o de Samuel \emph{et al.}~\cite{samuel2006}, que montaram um RBD em série de um turboeixo a partir de registros de campo, depois de identificar os modos de falha e limpar os dados.
+Laskowski~\cite{laskowski2015} usou FTA em um motor marítimo; nenhum desses estudos compara tecnologias de motor no mesmo modelo.
+
+Para as redundâncias, o modelo do fator $\beta$ separa da taxa de cada unidade a parcela de causas comuns, que derrubam as duas unidades ao mesmo tempo~\cite{ebeling1997,rausand2004}.
+Com um só parâmetro, ele se presta a casos sem dados para estimar a dependência, como este.
+Bobbio \emph{et al.}~\cite{bobbio2001} mostraram que uma árvore de falhas pode ser convertida em rede bayesiana sem perda de informação, o que abre a inferência diagnóstica (dada a falha, qual a causa) e a atualização de parâmetros com dados.
+
+Os dados de falha disponíveis têm naturezas diferentes para cada tecnologia.
+Para motores a pistão, o ATSB analisa os modos de falha~\cite{romeyn2007} e publica taxas por fabricante para aviões leves entre 2009 e 2014~\cite{atsb2016}.
+Para turbinas, os números mais citados são limites regulatórios, como o de desligamentos em voo (IFSD) para operações ETOPS~\cite{cfr25k} e o de perda de potência para monomotores a turbina em voo por instrumentos (SET-IMC)~\cite{easa2017}.
+Um limite diz quanto o motor pode falhar, e não quanto ele falha; tomá-lo como taxa subestima a vantagem da turbina.
+Taxas observadas existem para o PT6~\cite{stobie2019} e para o CFM56-7B~\cite{cfm2012}, esta última divulgada pelo próprio fabricante.
+
+Nenhuma dessas fontes distribui a taxa entre subsistemas.
+Para isso, usamos bases de ocorrências: o Service Difficulty Reporting System (SDRS) da FAA~\cite{sdrs}, os achados de acidentes do NTSB~\cite{ntsb} e os relatórios do Centro de Investigação e Prevenção de Acidentes Aeronáuticos (CENIPA)~\cite{cenipa}.
+Sem horas voadas, elas permitem estimar proporções, mas não taxas absolutas.

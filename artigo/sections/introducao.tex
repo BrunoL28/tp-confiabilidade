@@ -1,0 +1,20 @@
+\section{Introdução}\label{sec:intro}
+
+Em um avião monomotor, não há redundância para a propulsão.
+Se o motor falha em voo, a aeronave passa a planar e o piloto precisa encontrar onde pousar.
+O risco depende da tecnologia do motor.
+Em aviões leves na Austrália, o Australian Transport Safety Bureau (ATSB) registrou entre 12 e 13 falhas ou maus funcionamentos \pcmh{} de motores a pistão~\cite{atsb2016}, enquanto os números publicados para turbinas ficam abaixo de 1 \pcmh{}~\cite{stobie2019,cfr25k,easa2017}.
+Parte da explicação está na arquitetura: o motor a pistão depende de muitas peças em movimento alternado e de subsistemas em série, e a turbina trabalha em rotação contínua, com mais redundância no controle.
+
+Esses números, porém, são publicados como uma taxa única para o motor inteiro.
+Eles não mostram quais subsistemas concentram as falhas, nem permitem avaliar se a redundância, dentro do motor ou na instalação de dois motores, compensa uma tecnologia menos confiável.
+Para responder a essas perguntas, é preciso modelar o motor como um sistema.
+
+Este trabalho compara a confiabilidade de motores a pistão, turboélice e turbofan por meio de diagramas de blocos de confiabilidade (RBD, \emph{reliability block diagram}).
+Os objetivos específicos, definidos na proposta do projeto, são:
+(i)~representar a arquitetura de cada motor em um RBD;
+(ii)~estimar a taxa de falha $\lambda$, o tempo médio entre falhas (MTBF) e a confiabilidade $R(t)$ de cada um;
+(iii)~avaliar o efeito das redundâncias, isto é, da ignição duplicada no pistão, do controle eletrônico de dois canais no turbofan e do uso de dois motores na mesma aeronave;
+e (iv)~identificar os subsistemas que mais contribuem para a falha de cada tecnologia.
+
+Além de responder a esses objetivos, o trabalho mede as frações de cada subsistema em três bases públicas, calcula o valor da causa comum entre motores a partir do qual dois motores a pistão deixam de ser mais seguros que um a turbina e confronta o modelo com a proporção de falhas de motor que terminaram em acidente no Brasil.

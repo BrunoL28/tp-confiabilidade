@@ -29,6 +29,12 @@ plt.rcParams.update({"font.size": 9, "axes.edgecolor": GRADE, "axes.labelcolor":
                      "axes.spines.right": False, "figure.facecolor": FUNDO, "axes.facecolor": FUNDO,
                      "savefig.facecolor": FUNDO, "axes.titlesize": 10, "axes.titleweight": "bold",
                      "axes.titlelocation": "left", "grid.color": GRADE, "grid.linewidth": 0.6})
+# Versão das figuras para o artigo (IEEE, coluna de 3,5 pol. ou página de 7,16 pol.): PDF vetorial,
+# fundo branco, sem título nem nota de rodapé (a legenda do artigo faz esse papel), fontes TrueType embutidas.
+RC_ARTIGO = {"font.size": 8, "axes.labelsize": 8, "xtick.labelsize": 7, "ytick.labelsize": 7,
+             "figure.facecolor": "white", "axes.facecolor": "white", "savefig.facecolor": "white",
+             "pdf.fonttype": 42, "axes.titlesize": 8}
+TRACO = {"pistao": "-", "turboelice": (0, (5, 2)), "turbofan": (0, (1, 1.5))}  # legível em tons de cinza
 P = parametros()
 U = P["unidade_taxa"]
 BLOCOS, LIT = rbd.ler_config()
@@ -163,38 +169,50 @@ def sensibilidade(t=1.0):
 
 
 # ------------------------------- figuras -------------------------------
+def salvar(fig, nome, artigo):
+    if artigo:
+        (FIGURAS / "artigo").mkdir(exist_ok=True)
+        fig.savefig(FIGURAS / "artigo" / f"{nome}.pdf", bbox_inches="tight", pad_inches=0.02)
+    else:
+        fig.savefig(FIGURAS / f"{nome}.png", dpi=200)
+    plt.close(fig)
+
+
 def nota_provisorio(fig, provisorio):
     if provisorio:
         fig.text(0.01, 0.005, "Frações por subsistema provisórias (config/blocos_rbd.csv) até a planilha do CENIPA, "
                  "o SDRS e o NTSB serem carregados.", fontsize=7, color=TINTA2, ha="left", va="bottom")
 
 
-def fig_prob_tempo():
+def fig_prob_tempo(artigo=False):
     t = np.logspace(0, 4, 200)
-    fig, ax = plt.subplots(figsize=(6.4, 3.8))
+    fig, ax = plt.subplots(figsize=(3.5, 2.45) if artigo else (6.4, 3.8))
     for m in MOTORES:
         ax.fill_between(t, rbd.construir(m, nivel_taxa="min").F(t), rbd.construir(m, nivel_taxa="max").F(t),
                         color=COR[m], alpha=0.13, linewidth=0)
         f = rbd.construir(m).F(t)
-        ax.plot(t, f, color=COR[m], linewidth=2)
-        ax.annotate(ROTULO_MOTOR[m], (t[-1], f[-1]), xytext=(6, {"turbofan": 5, "turboelice": -5}.get(m, 0)),
+        ax.plot(t, f, color=COR[m], linewidth=1.5 if artigo else 2, linestyle=TRACO[m] if artigo else "-")
+        ax.annotate(ROTULO_MOTOR[m], (t[-1], f[-1]), xytext=(4 if artigo else 6, {"turbofan": 5, "turboelice": -5}.get(m, 0)),
                     textcoords="offset points", va="center",
-                    fontsize=9, color=TINTA)
+                    fontsize=7 if artigo else 9, color=TINTA)
     for x, txt in ((1, "voo de 1 h"), (1000, "ano de 1000 h")):
         ax.axvline(x, color=TINTA2, linewidth=0.8, linestyle=(0, (2, 3)))
-        ax.text(x * 1.12, 2.2e-7, txt, fontsize=8, color=TINTA2, va="bottom")
+        ax.text(x * 1.12, 2.2e-7, txt, fontsize=6.5 if artigo else 8, color=TINTA2, va="bottom")
     ax.set(xscale="log", yscale="log", xlim=(1, 1e4), ylim=(2e-7, 1.5), xlabel="Tempo de operação t (h)",
-           ylabel="Probabilidade de falha do motor até t", title="Probabilidade de falha por tecnologia")
+           ylabel="P(falha do motor até t)" if artigo else "Probabilidade de falha do motor até t")
     ax.grid(True, which="major", axis="y")
-    fig.text(0.01, 0.005, "Linha: taxa nominal da literatura. Faixa: taxa mínima a máxima (Tabela I).",
-             fontsize=7, color=TINTA2)
-    fig.subplots_adjust(left=0.11, right=0.86, top=0.9, bottom=0.17)
-    fig.savefig(FIGURAS / "fig_prob_falha_tempo.png", dpi=200)
-    plt.close(fig)
+    if artigo:
+        fig.subplots_adjust(left=0.16, right=0.78, top=0.97, bottom=0.17)
+    else:
+        ax.set_title("Probabilidade de falha por tecnologia")
+        fig.text(0.01, 0.005, "Linha: taxa nominal da literatura. Faixa: taxa mínima a máxima (Tabela I).",
+                 fontsize=7, color=TINTA2)
+        fig.subplots_adjust(left=0.11, right=0.86, top=0.9, bottom=0.17)
+    salvar(fig, "fig_prob_falha_tempo", artigo)
 
 
-def fig_pareto(par):
-    fig, axs = plt.subplots(1, 3, figsize=(11, 3.9))
+def fig_pareto(par, artigo=False):
+    fig, axs = plt.subplots(1, 3, figsize=(7.16, 2.55) if artigo else (11, 3.9))
     for ax, m in zip(axs, MOTORES):
         d = par[par["motor"] == m].iloc[::-1]
         y = np.arange(len(d))
@@ -202,46 +220,56 @@ def fig_pareto(par):
         ax.errorbar(100 * d["parcela"], y, xerr=[100 * (d["parcela"] - d["parcela_min"]),
                     100 * (d["parcela_max"] - d["parcela"])], fmt="none", ecolor=TINTA2, elinewidth=0.9, capsize=2)
         for yi, (pv, pmax) in enumerate(zip(d["parcela"], d["parcela_max"])):
-            ax.text(100 * pmax + 1.2, yi, f"{100 * pv:.0f}%", va="center", fontsize=8, color=TINTA)
-        ax.set_yticks(y, [r.replace(", virabrequim", ",\nvirabrequim") for r in d["rotulo"]], fontsize=8)
-        ax.set(xlim=(0, 100 * par["parcela_max"].max() + 9), xlabel="Parcela na falha do motor (%)",
+            ax.text(100 * pmax + 1.2, yi, f"{100 * pv:.0f}%", va="center", fontsize=6.5 if artigo else 8, color=TINTA)
+        ax.set_yticks(y, [r.replace(", virabrequim", ",\nvirabrequim") for r in d["rotulo"]], fontsize=6.5 if artigo else 8)
+        ax.set(xlim=(0, 100 * par["parcela_max"].max() + 9),
+               xlabel="Parcela na falha (%)" if artigo else "Parcela na falha do motor (%)",
                title=ROTULO_MOTOR[m])
         ax.grid(True, axis="x")
         ax.set_axisbelow(True)
         ax.tick_params(axis="y", length=0)
-    nota_provisorio(fig, bool(par.loc[par["estrutura"] == "serie", "provisorio"].any()))  # pares: taxa assumida, não fração
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
-    fig.savefig(FIGURAS / "fig_pareto_blocos.png", dpi=200)
-    plt.close(fig)
+    if artigo:
+        fig.tight_layout(pad=0.3, w_pad=0.6)
+    else:
+        nota_provisorio(fig, bool(par.loc[par["estrutura"] == "serie", "provisorio"].any()))  # pares: taxa assumida, não fração
+        fig.tight_layout(rect=(0, 0.03, 1, 1))
+    salvar(fig, "fig_pareto_blocos", artigo)
 
 
-def fig_bimotor(eq):
+def fig_bimotor(eq, artigo=False):
     t = 1.0
     betas = np.logspace(-3, np.log10(0.5), 120)
     lam = {m: float(rbd.construir(m).taxa_equivalente(t)) for m in MOTORES}
-    fig, ax = plt.subplots(figsize=(6.6, 3.9))
+    fig, ax = plt.subplots(figsize=(3.5, 2.45) if artigo else (6.6, 3.9))
+    lw, fs, dx = (1.5, 7, 4) if artigo else (2, None, 6)
     y2 = 1 - rbd.R_dois_motores(lam["pistao"], betas, t)
-    ax.plot(betas, y2, color=COR["pistao"], linewidth=2)
-    ax.annotate("2 motores a pistão", (betas[-1], y2[-1]), xytext=(6, 0), textcoords="offset points", va="center")
+    ax.plot(betas, y2, color=COR["pistao"], linewidth=lw)
+    ax.annotate("2 pistões" if artigo else "2 motores a pistão", (betas[-1], y2[-1]), xytext=(dx, 0),
+                textcoords="offset points", va="center", fontsize=fs)
     ax.axhline(lam["pistao"] * t, color=COR["pistao"], linewidth=1.2, linestyle=(0, (5, 3)))
-    ax.annotate("1 motor a pistão", (betas[-1], lam["pistao"] * t), xytext=(6, 0), textcoords="offset points", va="center")
+    ax.annotate("1 pistão" if artigo else "1 motor a pistão", (betas[-1], lam["pistao"] * t), xytext=(dx, 0),
+                textcoords="offset points", va="center", fontsize=fs)
     for m in ("turboelice", "turbofan"):
-        ax.axhline(lam[m] * t, color=COR[m], linewidth=2)
-        ax.annotate(f"1 {ROTULO_MOTOR[m].lower()}", (betas[-1], lam[m] * t), xytext=(6, 5 if m == "turbofan" else -5),
-                    textcoords="offset points", va="center")
+        ax.axhline(lam[m] * t, color=COR[m], linewidth=lw, linestyle=TRACO[m] if artigo else "-")
+        ax.annotate(f"1 {ROTULO_MOTOR[m].lower()}", (betas[-1], lam[m] * t), xytext=(dx, 5 if m == "turbofan" else -5),
+                    textcoords="offset points", va="center", fontsize=fs)
     be = eq[(eq["dois_pistoes_contra"] == "1 Turboélice") & (eq["nivel_lambda_turbina"] == "nom")]["beta_equilibrio"].iloc[0]
     if np.isfinite(be) and be < 1:
         ax.plot([be], [lam["turboelice"] * t], "o", color=TINTA, markersize=5, zorder=5)
         ax.annotate(f"empate em β ≈ {be:.3f}".replace(".", ","), (be, lam["turboelice"] * t), xytext=(8, -14),
-                    textcoords="offset points", fontsize=8)
-    ax.set(xscale="log", yscale="log", xlim=(1e-3, 0.5), xlabel="β entre os dois motores (fração de causa comum)",
-           ylabel="P(perda total de propulsão em 1 h)", title="Dois motores a pistão × um motor a turbina")
+                    textcoords="offset points", fontsize=6.5 if artigo else 8)
+    ax.set(xscale="log", yscale="log", xlim=(1e-3, 0.5),
+           xlabel="β entre os dois motores" if artigo else "β entre os dois motores (fração de causa comum)",
+           ylabel="P(perda total de propulsão em 1 h)")
     ax.grid(True, which="major", axis="y")
-    fig.text(0.01, 0.005, "Taxas nominais; o empate para as faixas da literatura está em bimotor_beta_equilibrio.csv.",
-             fontsize=7, color=TINTA2)
-    fig.subplots_adjust(left=0.12, right=0.80, top=0.9, bottom=0.17)
-    fig.savefig(FIGURAS / "fig_bimotor.png", dpi=200)
-    plt.close(fig)
+    if artigo:
+        fig.subplots_adjust(left=0.17, right=0.77, top=0.97, bottom=0.17)
+    else:
+        ax.set_title("Dois motores a pistão × um motor a turbina")
+        fig.text(0.01, 0.005, "Taxas nominais; o empate para as faixas da literatura está em bimotor_beta_equilibrio.csv.",
+                 fontsize=7, color=TINTA2)
+        fig.subplots_adjust(left=0.12, right=0.80, top=0.9, bottom=0.17)
+    salvar(fig, "fig_bimotor", artigo)
 
 
 def fig_sensibilidade(sen):
@@ -268,33 +296,37 @@ def fig_sensibilidade(sen):
              + (" Sem barra: com calibrar_total, β e unidades só redistribuem a taxa publicada." if P["calibrar_total"] else ""),
              fontsize=7, color=TINTA2)
     fig.tight_layout(rect=(0, 0.04, 1, 1))
-    fig.savefig(FIGURAS / "fig_sensibilidade.png", dpi=200)
-    plt.close(fig)
+    salvar(fig, "fig_sensibilidade", False)
 
 
-def fig_cenipa():
+def fig_cenipa(artigo=False):
     arq = TABELAS / "cenipa_prob_acidente.csv"
     if not arq.exists():
         return
     d = pd.read_csv(arq)
     d = d[d["grupo"].isin(["monomotor", "multimotor"]) & (d["falhas"] > 0)].reset_index(drop=True)
-    fig, ax = plt.subplots(figsize=(7.6, 3.0))
+    fig, ax = plt.subplots(figsize=(3.5, 1.85) if artigo else (7.6, 3.0))
     y = np.arange(len(d))[::-1]
     for yi, r in zip(y, d.itertuples()):
         ax.plot([100 * r.ic95_inf, 100 * r.ic95_sup], [yi, yi], color=COR[r.motor], linewidth=2)
-        ax.plot(100 * r.p_acidente, yi, "o", color=COR[r.motor], markersize=7, markeredgecolor=FUNDO, markeredgewidth=1.5)
-        ax.text(100 * r.ic95_sup + 2, yi, f"{100 * r.p_acidente:.0f}%  ({r.acidentes}/{r.falhas})", va="center", fontsize=8)
+        ax.plot(100 * r.p_acidente, yi, "o", color=COR[r.motor], markersize=5 if artigo else 7,
+                markeredgecolor="white" if artigo else FUNDO, markeredgewidth=1 if artigo else 1.5)
+        ax.text(100 * r.ic95_sup + 2, yi, f"{100 * r.p_acidente:.0f}%  ({r.acidentes}/{r.falhas})", va="center",
+                fontsize=6.5 if artigo else 8)
     ax.set_yticks(y, [f"{ROTULO_MOTOR[r.motor]}, {r.grupo}" for r in d.itertuples()])
-    ax.set(xlim=(0, 100), ylim=(-0.6, len(d) - 0.4), xlabel="Ocorrências de falha de motor classificadas como acidente (%)",
-           title="Falha de motor que termina em acidente (CENIPA, 2007–2026)")
+    ax.set(xlim=(0, 100), ylim=(-0.6, len(d) - 0.4),
+           xlabel="Falhas que terminaram em acidente (%)" if artigo else "Ocorrências de falha de motor classificadas como acidente (%)")
     ax.grid(True, axis="x")
     ax.set_axisbelow(True)
     ax.tick_params(axis="y", length=0)
-    fig.text(0.01, 0.005, "Ponto: proporção; traço: intervalo de Wilson de 95%. Incidentes leves são subnotificados "
-             "na aviação geral, o que eleva a proporção.", fontsize=7, color=TINTA2)
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
-    fig.savefig(FIGURAS / "fig_cenipa_prob_acidente.png", dpi=200)
-    plt.close(fig)
+    if artigo:
+        fig.tight_layout(pad=0.3)
+    else:
+        ax.set_title("Falha de motor que termina em acidente (CENIPA, 2007–2026)")
+        fig.text(0.01, 0.005, "Ponto: proporção; traço: intervalo de Wilson de 95%. Incidentes leves são subnotificados "
+                 "na aviação geral, o que eleva a proporção.", fontsize=7, color=TINTA2)
+        fig.tight_layout(rect=(0, 0.04, 1, 1))
+    salvar(fig, "fig_cenipa_prob_acidente", artigo)
 
 
 def main():
@@ -305,6 +337,8 @@ def main():
                      ("bimotor_vs_monomotor", bim), ("bimotor_beta_equilibrio", eq), ("sensibilidade", sen)):
         df.to_csv(TABELAS / f"{nome}.csv", index=False)
     fig_prob_tempo(); fig_pareto(par); fig_bimotor(eq); fig_sensibilidade(sen); fig_cenipa()
+    with plt.rc_context(RC_ARTIGO):  # versões em PDF para o artigo (saida/figuras/artigo/)
+        fig_prob_tempo(True); fig_pareto(par, True); fig_bimotor(eq, True); fig_cenipa(True)
     pd.set_option("display.width", 250, "display.max_columns", 30, "display.float_format", lambda v: f"{v:.4g}")
     for titulo, df in (("Métricas por motor", met.T), ("Pareto (voo de 1 h)", par[["motor", "rotulo", "taxa_1e5h", "parcela", "parcela_min", "parcela_max"]]),
                        ("Redundância interna", red.T), ("Bimotor x monomotor", bim), ("Beta de equilíbrio", eq),

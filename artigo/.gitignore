@@ -1,0 +1,21 @@
+# LaTeX build outputs — never commit
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.xdv
+*-blx.bib
+_minted*/
+tmp/
+.env
+main.pdf
+*.zip

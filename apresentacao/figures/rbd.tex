@@ -1,0 +1,56 @@
+% Diagramas de blocos de confiabilidade (RBD) dos três motores. Blocos empilhados: par redundante.
+\begin{tikzpicture}[
+  font=\fontsize{7}{8}\selectfont,
+  blk/.style={draw, rounded corners=1pt, align=center, minimum height=6.6mm, inner sep=1.5pt, text width=#1},
+  blk/.default=12mm,
+  rot/.style={font=\footnotesize\bfseries, anchor=east},
+  >=stealth, line width=0.4pt]
+\def\g{2.2mm}
+% ---------------- Pistão ----------------
+\node[rot] (lp) at (0,0) {Pistão};
+\node[blk=11mm, right=\g of lp] (p1) {Admissão};
+\coordinate[right=\g of p1] (p2i);
+\node[blk=11mm, right=\g of p2i, yshift=4.6mm] (p2a) {Bomba mecânica};
+\node[blk=11mm, right=\g of p2i, yshift=-4.6mm] (p2b) {Bomba elétrica};
+\coordinate (p2o) at ($(p2a.east |- p2i)+(\g,0)$);
+\node[blk=13mm, right=\g of p2o] (p3) {Carburador / injeção};
+\coordinate[right=\g of p3] (p4i);
+\node[blk=11mm, right=\g of p4i, yshift=4.6mm] (p4a) {Magneto 1};
+\node[blk=11mm, right=\g of p4i, yshift=-4.6mm] (p4b) {Magneto 2};
+\coordinate (p4o) at ($(p4a.east |- p4i)+(\g,0)$);
+\node[blk=19mm, right=\g of p4o] (p5) {Cilindros, válvulas, pistões, virabrequim};
+\node[blk=13mm, right=\g of p5] (p6) {Lubrificação};
+\node[blk=15.5mm, right=\g of p6] (p7) {Arrefecimento};
+\node[blk=13.5mm, right=\g of p7] (p8) {Hélice e governador};
+\draw (p1) -- (p2i) |- (p2a); \draw (p2i) |- (p2b);
+\draw (p2a) -| (p2o); \draw (p2b) -| (p2o); \draw (p2o) -- (p3);
+\draw (p3) -- (p4i) |- (p4a); \draw (p4i) |- (p4b);
+\draw (p4a) -| (p4o); \draw (p4b) -| (p4o); \draw (p4o) -- (p5);
+\draw (p5) -- (p6) -- (p7) -- (p8);
+% ---------------- Turboélice ----------------
+\node[rot] (lt) at (0,-1.75) {Turboélice};
+\node[blk=10mm, right=\g of lt] (t1) {Entrada de ar};
+\node[blk=13mm, right=\g of t1] (t2) {Compressor};
+\node[blk=13mm, right=\g of t2] (t3) {Câmara de combustão};
+\node[blk=17mm, right=\g of t3] (t4) {Turbinas (compressor e livre)};
+\node[blk=11mm, right=\g of t4] (t5) {Caixa de redução};
+\node[blk=13.5mm, right=\g of t5] (t6) {Hélice e governador};
+\node[blk=13mm, right=\g of t6] (t7) {Combustível (FCU)};
+\node[blk=13mm, right=\g of t7] (t8) {Lubrificação};
+\draw (t1) -- (t2) -- (t3) -- (t4) -- (t5) -- (t6) -- (t7) -- (t8);
+% ---------------- Turbofan ----------------
+\node[rot] (lf) at (0,-3.35) {Turbofan};
+\node[blk=7mm, right=\g of lf] (f1) {Fan};
+\node[blk=15.5mm, right=\g of f1] (f2) {Compressores LP e HP};
+\node[blk=13mm, right=\g of f2] (f3) {Câmara de combustão};
+\node[blk=12mm, right=\g of f3] (f4) {Turbinas HP e LP};
+\coordinate[right=\g of f4] (f5i);
+\node[blk=11mm, right=\g of f5i, yshift=4.6mm] (f5a) {FADEC A};
+\node[blk=11mm, right=\g of f5i, yshift=-4.6mm] (f5b) {FADEC B};
+\coordinate (f5o) at ($(f5a.east |- f5i)+(\g,0)$);
+\node[blk=13mm, right=\g of f5o] (f6) {Combustível};
+\node[blk=13mm, right=\g of f6] (f7) {Lubrificação};
+\node[blk=12mm, right=\g of f7] (f8) {Caixa de acessórios};
+\draw (f1) -- (f2) -- (f3) -- (f4) -- (f5i) |- (f5a); \draw (f5i) |- (f5b);
+\draw (f5a) -| (f5o); \draw (f5b) -| (f5o); \draw (f5o) -- (f6) -- (f7) -- (f8);
+\end{tikzpicture}
