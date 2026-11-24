@@ -14,10 +14,10 @@ python src/executar_tudo.py        # etapas 2 a 6, com o que houver em data/
 |---|--------|-----------|------------|
 | 1 | `01_extrair_bases.py cenipa\|ntsb\|sdrs` | Baixa os dados abertos do CENIPA e o `avall.zip` do NTSB; para o SDRS, imprime o passo a passo da consulta | internet |
 | 2 | `02_tratar_cenipa.py` | Uma linha por aeronave-ocorrência, filtro SCF-PP, tipo e número de motores; tabelas de contagem, P(acidente \| falha), origem e combustível à parte | etapa 1 |
-| 3 | `03_amostra_relatorios.py [--baixar-pdfs]` | Sorteia 50 relatórios de pistão (semente em `parametros.yaml`), inclui todos os de turboélice e jato, marca 10 para classificação dupla e cria `data/processed/planilha_relatorios.xlsx` | etapa 2 |
+| 3 | `03_amostra_relatorios.py [--baixar-pdfs]` | Sorteia 50 relatórios de pistão (semente em `parametros.yaml`), inclui todos os de turboélice e jato e cria `data/processed/planilha_relatorios.xlsx` | etapa 2 |
 | 4 | `04_tratar_ntsb_sdrs.py` | Conta falhas por bloco do RBD no SDRS (código JASC) e no NTSB (findings) | etapa 1 |
 | 5 | `05_analise_confiabilidade.py` | λ, MTBF, R(t), Pareto, redundâncias, dois pistões × uma turbina, sensibilidade; figuras | config |
-| 6 | `06_bayes_weibull.py` | Rede bayesiana (diagnóstico e previsão), atualização das frações, Gama–Poisson, Weibull do TSO, kappa | planilha preenchida |
+| 6 | `06_bayes_weibull.py` | Rede bayesiana (diagnóstico e previsão), atualização das frações, Gama–Poisson, Weibull do TSO | planilha preenchida |
 
 `rbd.py` é o modelo (Eq. 1 da proposta), `rede_bayesiana.py` a rede equivalente, `estatistica.py` as rotinas estatísticas.
 
@@ -30,7 +30,7 @@ python src/executar_tudo.py        # etapas 2 a 6, com o que houver em data/
 | Frações por subsistema | Medidas: n_i/N somando planilha do CENIPA, SDRS e NTSB (etapa 4). Os valores de `config/blocos_rbd.csv` só voltam a valer se não houver contagens |
 | Taxa das unidades redundantes | Estimada pelas contagens dos pares (`taxa_unidade_medida` em `rbd.py`); a faixa de `blocos_rbd.csv` só vale sem contagens |
 | β | Faixa assumida, como previsto na proposta |
-| Weibull, kappa, atualização bayesiana | Rodados com a planilha preenchida. O kappa (n = 7) ainda não vale como concordância entre avaliadores: `bloco_rbd_2`/`origem_2` precisam ser refeitos por outro membro da equipe |
+| Weibull, atualização bayesiana | Rodados com a planilha preenchida |
 
 ## Para fechar o trabalho
 

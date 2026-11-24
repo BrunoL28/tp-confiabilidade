@@ -97,7 +97,6 @@ O slide 15 fica depois do encerramento, como apoio, com sensibilidade, rede baye
 | Por que β não muda P(falha em 1 h)? | Mariana | A taxa publicada é preservada em 1 h. β só redistribui a taxa entre os blocos e muda o Pareto (slide 15). |
 | O fan de 28% não invalida o Pareto do turbofan? | Eduarda | Invalida como distribuição de falhas em voo, e por isso tratamos como distribuição de achados de manutenção. Corrigir só o fan distorceria os outros blocos, que têm o mesmo viés. |
 | A taxa constante vale? | Victor | A Weibull sugere desgaste (forma 2,3; p = 0,009), mas com n = 10 e sem os motores que seguem voando. Fica como trabalho futuro com dados censurados. |
-| Como garantiram a consistência da leitura dos relatórios? | Ana | Dupla classificação independente de 7 relatórios, medida pelo kappa de Cohen: [DADO: kappa]. |
 | Por que turboélice e turbofan não têm ordem? | Eduarda | As faixas publicadas (0,15–1 e 0,10–2 por 10⁵ h) se sobrepõem quase por inteiro. |
 | Onde está a Engenharia de Sistemas no trabalho? | Ana | Na fronteira e no evento de falha (requisito), na decomposição em subsistemas, na confiabilidade como propriedade emergente da arquitetura, no trade-off entre um e dois motores e no uso de dados de operação para orientar projeto e manutenção (slide 3). |
 | Que decisão de projeto o resultado orienta? | Mariana | No pistão, investir na confiabilidade do núcleo mecânico rende mais que duplicar componentes. Entre arquiteturas, um bimotor a pistão só se justifica se a causa comum entre os motores ficar abaixo de cerca de 1%. |
@@ -106,4 +105,3 @@ O slide 15 fica depois do encerramento, como apoio, com sensibilidade, rede baye
 
 - Ensaiar uma vez com cronômetro. Se passar de 10:30, pular primeiro o slide 4 (Ana resume a literatura em uma frase no fim do slide 3).
 - Combinar as passagens: cada pessoa termina chamando a próxima pelo nome (já está nas falas).
-- Preencher o kappa (slide 15 e tabela acima) assim que a dupla classificação for refeita.

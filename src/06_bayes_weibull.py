@@ -1,12 +1,12 @@
-"""Etapa 6 - Extensões: rede bayesiana, atualização das frações e taxas, Weibull e consistência.
+"""Etapa 6 - Extensões: rede bayesiana, atualização das frações e taxas e Weibull.
 
     python src/06_bayes_weibull.py
 
 Sempre roda:   diagnóstico (dada a falha do motor, qual subsistema é a causa mais provável) e
                previsão com evidência (risco no voo com uma unidade redundante já inoperante).
 Só com dados:  atualização das frações (precisa de contagens por bloco), Gama-Poisson das taxas
-               (precisa de exposicao_horas em parametros.yaml), Weibull (precisa de TSO na planilha)
-               e kappa de Cohen (precisa das classificações duplas). O que faltar é avisado e pulado.
+               (precisa de exposicao_horas em parametros.yaml) e Weibull (precisa de TSO na planilha).
+               O que faltar é avisado e pulado.
 """
 import pandas as pd
 
@@ -75,7 +75,7 @@ def atualizacoes():
 def planilha():
     arq = PROC / "planilha_relatorios.xlsx"
     if not arq.exists():
-        print("Planilha de relatórios não encontrada - Weibull e kappa pulados.")
+        print("Planilha de relatórios não encontrada - Weibull pulado.")
         return
     p = pd.read_excel(arq, sheet_name="relatorios", dtype=str).fillna("")
     tso = pd.to_numeric(p["tso_h"].str.replace(",", "."), errors="coerce")
@@ -89,14 +89,6 @@ def planilha():
         print("\n== Weibull do TSO (indicativo: só motores que falharam)\n" + pd.DataFrame(res).round(3).to_string(index=False))
     else:
         print("Weibull: menos de 8 valores de TSO por motor na planilha - pulado.")
-    d = p[(p["dupla"] == "S") & (p["bloco_rbd"] != "") & (p["bloco_rbd_2"] != "")]
-    if len(d) >= 5:
-        k = pd.DataFrame([{"campo": "bloco_rbd", **es.kappa_cohen(d["bloco_rbd"], d["bloco_rbd_2"])},
-                          {"campo": "origem", **es.kappa_cohen(d["origem"], d["origem_2"])}])
-        k.to_csv(TABELAS / "consistencia_kappa.csv", index=False)
-        print("\n== Consistência da classificação dupla\n" + k.round(3).to_string(index=False))
-    else:
-        print("Kappa: classificações duplas ainda não preenchidas - pulado.")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Estatística de apoio: atualização bayesiana (Dirichlet e Gama-Poisson), Weibull e kappa de Cohen."""
+"""Estatística de apoio: atualização bayesiana (Dirichlet e Gama-Poisson) e Weibull."""
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -55,11 +55,3 @@ def ajustar_weibull(tempos, n_boot=2000, semente=0):
     return dict(n=len(x), forma=k, escala_h=escala, forma_ic95_inf=np.percentile(ks, 2.5),
                 forma_ic95_sup=np.percentile(ks, 97.5), razao_verossimilhanca=rv, p_valor=stats.chi2.sf(rv, 1))
 
-
-def kappa_cohen(a, b):
-    """Concordância entre dois classificadores, descontado o acaso."""
-    a, b = pd.Series(list(a)), pd.Series(list(b))
-    po = (a == b).mean()
-    cats = sorted(set(a) | set(b))
-    pe = sum((a == c).mean() * (b == c).mean() for c in cats)
-    return dict(n=len(a), concordancia=po, kappa=(po - pe) / (1 - pe) if pe < 1 else 1.0)

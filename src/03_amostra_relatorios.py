@@ -5,8 +5,8 @@
     python src/03_amostra_relatorios.py --baixar-pdfs /mnt/c/Users/<voce>/Downloads   # usa PDF salvos no navegador
 
 Todos os relatórios de turboélice e de jato entram; dos de pistão, sorteia-se uma amostra aleatória
-simples com a semente de config/parametros.yaml. Dez relatórios são marcados para classificação
-dupla. A planilha (data/processed/planilha_relatorios.xlsx) é preenchida à mão; a etapa 5 a lê.
+simples com a semente de config/parametros.yaml. A planilha (data/processed/planilha_relatorios.xlsx)
+é preenchida à mão; a etapa 5 a lê.
 Se a planilha já existir, ela NÃO é sobrescrita (o preenchimento é preservado).
 """
 import re
@@ -22,7 +22,7 @@ from comum import BRUTO, CONFIG, MOTORES, PROC, parametros
 
 PLANILHA = PROC / "planilha_relatorios.xlsx"
 PREENCHER = ["modelo_motor", "tsn_h", "tso_h", "componente", "bloco_rbd", "modo_falha", "origem",
-             "so_operacional", "bloco_rbd_2", "origem_2", "observacoes"]
+             "so_operacional", "observacoes"]
 ORIGENS = ["projeto", "fabricacao", "manutencao", "operacao", "indeterminado"]
 
 
@@ -42,8 +42,6 @@ def sortear():
     pist = rel[rel["motor"] == "pistao"]
     idx = rng.choice(len(pist), size=min(p["tamanho_amostra_pistao"], len(pist)), replace=False)
     am = pd.concat([pist.iloc[np.sort(idx)], rel[rel["motor"] != "pistao"]])
-    dupla = rng.choice(len(am), size=min(p["n_dupla_classificacao"], len(am)), replace=False)
-    am["dupla"] = np.where(np.isin(np.arange(len(am)), dupla), "S", "N")
     links = pd.read_csv(BRUTO / "cenipa" / "links_relatorios.csv")
     am = am.merge(links[["numero", "pdf_pt"]], left_on="divulgacao_relatorio_numero", right_on="numero", how="left")
     am = am.rename(columns={"divulgacao_relatorio_numero": "relatorio", "aeronave_matricula": "matricula",
@@ -51,7 +49,7 @@ def sortear():
                             "subtipo_scf_pp": "subtipo"})
     am["data"] = pd.to_datetime(am["data"]).dt.strftime("%d/%m/%Y")
     cols = ["codigo_ocorrencia", "motor", "relatorio", "data", "matricula", "modelo_aeronave", "n_motores",
-            "classificacao", "subtipo", "pdf_pt", "dupla"]
+            "classificacao", "subtipo", "pdf_pt"]
     am = am[cols].reset_index(drop=True)
     for c in PREENCHER:
         am[c] = ""
@@ -68,8 +66,7 @@ def gravar_planilha(am):
         linhas = [(m, v) for m in MOTORES for v in validos[m]]
         pd.DataFrame(linhas, columns=["motor", "bloco_rbd"]).to_excel(xw, sheet_name="blocos_validos", index=False)
         pd.DataFrame({"campo": [
-            "modelo_motor", "tsn_h / tso_h", "componente", "bloco_rbd", "modo_falha", "origem", "so_operacional",
-            "bloco_rbd_2 / origem_2", "linhas com dupla = S"],
+            "modelo_motor", "tsn_h / tso_h", "componente", "bloco_rbd", "modo_falha", "origem", "so_operacional"],
             "como preencher": [
             "modelo do motor que falhou, como no relatório (ex.: IO-540-K1J5)",
             "horas totais e desde a última revisão geral do motor; deixe vazio se o relatório não informa",
@@ -77,9 +74,7 @@ def gravar_planilha(am):
             "um valor da aba blocos_validos para o motor da linha; 'indeterminado' se a causa não foi identificada",
             "texto curto (fadiga, desgaste, vazamento, travamento, contaminação...)",
             "projeto, fabricacao, manutencao, operacao ou indeterminado",
-            "S se a falha foi só operacional (ex.: esgotamento de combustível): é contada à parte",
-            "segunda classificação, feita por outro integrante sem ver a primeira",
-            "precisam das duas classificações (consistência dos critérios, kappa de Cohen)"]}
+            "S se a falha foi só operacional (ex.: esgotamento de combustível): é contada à parte"]}
         ).to_excel(xw, sheet_name="instrucoes", index=False)
     wb = load_workbook(PLANILHA)
     ws = wb["relatorios"]
@@ -91,11 +86,10 @@ def gravar_planilha(am):
     for i, v in enumerate(todos, start=2):
         wsb[f"D{i}"] = v
     faixa = f"=blocos_validos!$D$2:$D${len(todos) + 1}"
-    for col in ("bloco_rbd", "bloco_rbd_2"):
-        dv = DataValidation(type="list", formula1=faixa, allow_blank=True)
-        ws.add_data_validation(dv)
-        dv.add(f"{cab[col]}2:{cab[col]}{n}")
-    for col, lista in (("origem", ORIGENS), ("origem_2", ORIGENS), ("so_operacional", ["S", "N"])):
+    dv = DataValidation(type="list", formula1=faixa, allow_blank=True)
+    ws.add_data_validation(dv)
+    dv.add(f"{cab['bloco_rbd']}2:{cab['bloco_rbd']}{n}")
+    for col, lista in (("origem", ORIGENS), ("so_operacional", ["S", "N"])):
         dv = DataValidation(type="list", formula1='"' + ",".join(lista) + '"', allow_blank=True)
         ws.add_data_validation(dv)
         dv.add(f"{cab[col]}2:{cab[col]}{n}")
