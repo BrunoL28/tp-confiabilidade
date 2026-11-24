@@ -1,0 +1,379 @@
+% Apresentação do projeto (10 min + 5 min de arguição). Compilar com pdfLaTeX.
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}, group-separator={\,}, group-minimum-digits=4, exponent-product=\times}
+\usepackage{tikz}
+\usetikzlibrary{positioning,calc}
+
+% ---------------- Estilo (cores da identidade IEEE) ----------------
+\definecolor{ieeeblue}{HTML}{00629B}
+\definecolor{ieeedark}{HTML}{002855}
+\definecolor{cinza}{HTML}{52514E}
+\definecolor{pistao}{HTML}{2A78D6}
+\definecolor{turboelice}{HTML}{EB6834}
+\definecolor{turbofan}{HTML}{1BAF7A}
+
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{frametitle}{fg=white,bg=ieeeblue}
+\setbeamercolor{title}{fg=ieeedark}
+\setbeamercolor{structure}{fg=ieeeblue}
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{alerted text}{fg=ieeeblue}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamertemplate{itemize items}[square]
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=8.5mm,dp=3mm,leftskip=6mm]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}}
+\setbeamertemplate{footline}{%
+  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=4mm,dp=1.5mm,leftskip=6mm,rightskip=6mm]{}%
+    \color{cinza}\tiny Confiabilidade de motores aeronáuticos \textbar{} Engenharia de Sistemas, UFMG%
+    \hfill\insertframenumber\,/\,\inserttotalframenumber
+  \end{beamercolorbox}}}
+\setlength{\leftmargini}{1.2em}
+\newcommand{\destaque}[1]{{\color{ieeeblue}\bfseries #1}}
+\newcommand{\pcmh}{por $10^5$~h}
+\newcommand{\pendente}[1]{{\color{blue}[#1]}}
+
+\title{Análise Comparativa da Confiabilidade de Motores Aeronáuticos a Pistão, Turboélice e Turbofan}
+\author{Ana Amantea Leal Marques Afonso \and Bruno Lima Soares \and Eduarda Amaral de Oliveira \and Mariana Pinho Barroso Sousa \and Victor Almeida Morais}
+\institute{Engenharia de Sistemas, Universidade Federal de Minas Gerais\\Belo Horizonte, Brasil}
+\date{2026}
+
+\begin{document}
+
+% ======================= Pessoa 1 =======================
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[ieeeblue] (current page.north west) rectangle ([yshift=-4mm]current page.north east);
+    \fill[ieeeblue] (current page.south west) rectangle ([yshift=4mm]current page.south east);
+  \end{tikzpicture}
+  \vfill
+  \begin{center}
+    {\color{ieeedark}\LARGE\bfseries Análise Comparativa da Confiabilidade de Motores\\[1mm] Aeronáuticos a Pistão, Turboélice e Turbofan\par}
+    \vspace{6mm}
+    {\small Ana Amantea Leal Marques Afonso \quad Bruno Lima Soares \quad Eduarda Amaral de Oliveira\\[0.5mm]
+    Mariana Pinho Barroso Sousa \quad Victor Almeida Morais\par}
+    \vspace{3mm}
+    {\footnotesize\color{cinza}\textit{Engenharia de Sistemas, Universidade Federal de Minas Gerais}, Belo Horizonte, Brasil\par}
+  \end{center}
+  \vfill
+\end{frame}
+
+\begin{frame}{Motivação e objetivos}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \textbf{O problema}
+      \begin{itemize}
+        \item Em um monomotor, a falha do motor em voo elimina toda a propulsão
+        \item Literatura: pistão com \destaque{10 a 100} falhas \pcmh; turbinas abaixo de \destaque{1}
+        \item Mas é uma \emph{taxa única} para o motor inteiro: não diz onde estão as falhas nem se a redundância compensa
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \textbf{Objetivos}
+      \begin{enumerate}
+        \item Representar cada motor em um diagrama de blocos de confiabilidade (RBD)
+        \item Estimar $\lambda$, MTBF e $R(t)$
+        \item Avaliar redundâncias: magnetos, FADEC de dois canais e \emph{dois motores}
+        \item Identificar os subsistemas mais críticos
+      \end{enumerate}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Um problema de Engenharia de Sistemas}
+  \begin{columns}[c]
+    \begin{column}{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        nivel/.style={draw=ieeeblue, fill=ieeeblue!8, rounded corners=2pt, text width=36mm, minimum height=8mm, align=center, font=\footnotesize},
+        nota/.style={font=\scriptsize\color{cinza}, align=center},
+        >=stealth, line width=0.5pt]
+        \node[nivel] (a) at (0,0) {\textbf{Aeronave}\\[-0.5mm]{\scriptsize um ou dois motores?}};
+        \node[nivel] (m) at (0,-1.25) {\textbf{Motor}\\[-0.5mm]{\scriptsize arquitetura em RBD}};
+        \node[nivel] (s) at (0,-2.5) {\textbf{Subsistemas}\\[-0.5mm]{\scriptsize série e pares redundantes}};
+        \node[nivel] (c) at (0,-3.75) {\textbf{Componentes}\\[-0.5mm]{\scriptsize falhas em operação}};
+        \draw[->] (a) -- (m); \draw[->] (m) -- (s); \draw[->] (s) -- (c);
+        \draw[->, ieeeblue, line width=0.8pt] ([xshift=2mm]c.south east) -- node[midway, sloped, below, font=\scriptsize] {integração: a confiabilidade emerge} ([xshift=2mm]a.north east);
+        \draw[->, cinza] ([xshift=-2mm]a.north west) -- node[midway, sloped, below, font=\scriptsize] {decomposição} ([xshift=-2mm]c.south west);
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.56\textwidth}
+      \small
+      \begin{itemize}
+        \item \textbf{Fronteira e requisito}: o evento de falha é não entregar a potência exigida; tanques e erro do piloto ficam fora do sistema
+        \item \textbf{Confiabilidade é propriedade emergente}: depende de como os subsistemas se arranjam (série $\times$ paralelo), não só de cada peça
+        \item \textbf{Trade-off de arquitetura}: redundância compensa uma tecnologia pior? Depende da causa comum entre as partes ($\beta$)
+        \item \textbf{Ciclo de vida}: dados de operação e manutenção voltam para o projeto e apontam onde intervir
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{O que a literatura já oferece}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Técnicas}
+      \begin{itemize}
+        \item FMEA, FTA e RBD em propulsão, com pouca informação de campo (NASA, 2000)
+        \item RBD em série de um turboeixo a partir de registros de campo (Samuel \emph{et al.}, 2006)
+        \item Fator $\beta$ para causa comum (Ebeling, 1997)
+        \item Árvore de falhas $\rightarrow$ rede bayesiana (Bobbio \emph{et al.}, 2001)
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Dados}
+      \begin{itemize}
+        \item ATSB: taxas medidas para motores a pistão
+        \item Turbinas: em geral \emph{limites} regulatórios (ETOPS, SET-IMC), que dizem quanto o motor pode falhar, não quanto falha
+        \item SDRS, NTSB e CENIPA: registros por componente, mas \emph{sem horas voadas}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vspace{1mm}
+  \begin{center}
+    \fcolorbox{ieeeblue}{white}{\parbox{0.85\textwidth}{\centering\small Lacuna: nenhum estudo compara as três tecnologias dentro do mesmo modelo.}}
+  \end{center}
+\end{frame}
+
+% ======================= Pessoa 2 =======================
+\begin{frame}{Sistema estudado: três motores, três RBD}
+  \centering
+  {\small Lycoming O-540 (pistão) \quad\textbar\quad PT6A-34 (turboélice) \quad\textbar\quad CFM56-7B (turbofan)\par}
+  \vspace{1.5mm}
+  \makebox[\linewidth]{\resizebox{0.97\paperwidth}{!}{\input{figures/rbd}}}
+  \vspace{1mm}
+  {\footnotesize\raggedright
+  Falha = perda de potência que obriga a desligar o motor. Bloco em série: sua falha derruba o motor. Blocos empilhados: par redundante, que só falha se as duas unidades falharem.\par}
+\end{frame}
+
+\begin{frame}{Método: taxa da literatura, frações medidas}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \small
+      \textbf{Modelo} (taxa constante)
+      \begin{itemize}
+        \item Série: $R_s = \prod_i e^{-\lambda_i t}$
+        \item Par com causa comum $\beta$:
+          \[ R_p = \left[1-\left(1-e^{-(1-\beta)\lambda_u t}\right)^2\right] e^{-\beta\lambda_u t} \]
+        \item Distribuição da taxa: $\lambda_i = \lambda_s\, n_i/N_s$
+        \item Unidade do par: $\lambda_u = n_p\lambda/(2N_s)$
+        \item Taxa publicada preservada em um voo de 1~h
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \small
+      \textbf{Dados}
+      \begin{center}
+      \begin{tabular}{@{}lr@{}}
+        \toprule
+        Fonte & Registros \\
+        \midrule
+        SDRS (FAA) & 4295 \\
+        NTSB & 2097 \\
+        CENIPA (relatórios lidos) & 40 \\
+        \midrule
+        Total & \destaque{6432} \\
+        \bottomrule
+      \end{tabular}
+      \end{center}
+      \begin{itemize}
+        \item $\lambda$ nominal: 12,4; 0,15; 0,20 \pcmh
+        \item CENIPA: 86 relatórios finais lidos
+        \item Intervalos: Jeffreys e Wilson; rede bayesiana e Weibull
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ======================= Pessoa 3 =======================
+\begin{frame}{Resultado 1: o pistão falha 62 a 83 vezes mais}
+  \begin{columns}[c]
+    \begin{column}{0.53\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig_prob_falha_tempo}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \small
+      \begin{tabular}{@{}lcc@{}}
+        \toprule
+        Motor & $F(1\,\mathrm{h})$ & $R(1000\,\mathrm{h})$ \\
+        \midrule
+        Pistão & \num{1.24e-4} & 0,883 \\
+        Turboélice & \num{1.5e-6} & 0,9985 \\
+        Turbofan & \num{2.0e-6} & 0,9980 \\
+        \bottomrule
+      \end{tabular}
+      \vspace{2mm}
+      \begin{itemize}
+        \item Em 1000~h: \destaque{12\%} de chance de falha no pistão, 0,15--0,20\% nas turbinas
+        \item No pior caso das faixas, o pistão ainda falha \destaque{5 vezes} mais
+        \item Turboélice $\times$ turbofan: faixas sobrepostas, \emph{sem ordem}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Resultado 2: onde as falhas se concentram}
+  \centering
+  \resizebox{\textwidth}{!}{\begin{tikzpicture}\input{figures/pareto_slide}\end{tikzpicture}}
+  \vspace{1.5mm}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \small
+      \begin{itemize}
+        \item Pistão: núcleo mecânico com \destaque{57\%}; os 5 blocos em série sem redundância somam 98\%
+        \item Magnetos duplicados: só 1\%
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \small
+      \begin{itemize}
+        \item Fan do turbofan (28\%): lemos 101 registros, e \destaque{94} eram achados em solo na manutenção
+        \item 68\% dos registros do CFM56-7 vêm de um único operador
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ======================= Pessoa 4 =======================
+\begin{frame}{Resultado 3: redundância dentro do motor}
+  \centering
+  \begin{tabular}{@{}lrrcr@{}}
+    \toprule
+    Par & Registros & $\lambda_u$ (\pcmh) & Ganho & Sem o par \\
+    \midrule
+    Magnetos (pistão) & 500 & 1,30 & 10$\times$ & +9,4\% \\
+    Bombas (pistão) & 138 & 0,36 & 10$\times$ & +2,6\% \\
+    FADEC A/B (turbofan) & 19 & 0,0006 & 10$\times$ & +0,3\% \\
+    \bottomrule
+  \end{tabular}
+  \vspace{5mm}
+  \begin{itemize}
+    \item Ganho: $F$ de uma unidade sobre $F$ do par. Sem o par: aumento em $F(1\,\mathrm{h})$ do motor
+    \item O par reduz em cerca de \destaque{10 vezes} a chance de perder a função, e esse ganho é limitado pela causa comum: fica perto de $1/\beta$, com $\beta = 0{,}1$
+    \item Sem os dois pares, o pistão falharia \destaque{12\%} mais em 1~h
+    \item Rede bayesiana: voar com um magneto já inoperante aumenta o risco em 9,4\%
+    \item FADEC: poucas falhas registradas, porque o próprio sistema tolera parte delas
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Resultado 4: dois pistões $\times$ uma turbina}
+  \begin{columns}[c]
+    \begin{column}{0.53\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig_bimotor}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \small
+      \begin{itemize}
+        \item Falhas independentes: perda total em \num{1.5e-8} por hora
+        \item Mas a causa comum entre motores (combustível, manutenção, gelo) domina
+        \item Empate em \destaque{$\beta = 0{,}012$} contra o turboélice e \destaque{$0{,}016$} contra o turbofan
+        \item A faixa usual de $\beta$ vai de 0,01 a 0,3
+        \item O bimotor ainda \emph{dobra} a chance de alguma falha de motor no voo
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ======================= Pessoa 5 =======================
+\begin{frame}{Resultado 5: o que dizem as ocorrências no Brasil}
+  \begin{columns}[c]
+    \begin{column}{0.53\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig_cenipa_prob_acidente}
+      \centering{\scriptsize\color{cinza} CENIPA, 2007--2026: falhas de motor que terminaram em acidente, com IC de Wilson 95\%\par}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \small
+      \begin{itemize}
+        \item Turboélice: de 40\% para \destaque{4,8\%} com o segundo motor, 8 vezes menos
+        \item Pistão: de 62\% para \destaque{38\%}, só 1,6 vez menos
+        \item Jatos: nenhum acidente em 488 falhas
+        \item Ressalvas: subnotificação de incidentes leves; operações diferentes entre mono e multimotores
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Limitações}
+  \begin{itemize}
+    \item \textbf{Frações por contagem}: supõem a mesma chance de registro para todos os blocos e somam, sem peso, fontes que medem coisas diferentes
+    \item \textbf{SDRS registra dificuldades, não só falhas}: o Pareto do turbofan mostra onde a manutenção encontra problemas
+    \item \textbf{Taxa constante em dúvida}: Weibull do TSO com forma 2,3 (IC de 1,4 a 6,0; $n = 10$), indício de desgaste
+    \item \textbf{Sem horas voadas}: a atualização Gama--Poisson das taxas absolutas não foi possível
+    \item \textbf{Taxa do turbofan}: vem do fabricante, sem estatística independente
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusões}
+  \begin{itemize}
+    \item O pistão falha \destaque{62 a 83 vezes} mais que as turbinas, e a diferença resiste a toda a faixa da literatura
+    \item As falhas do pistão estão no \destaque{núcleo mecânico}, sem redundância; é ali que manutenção e projeto rendem mais
+    \item \destaque{Redundância não compensa tecnologia}: dois pistões só superam uma turbina com $\beta$ abaixo de 1,2--1,6\%, e o CENIPA confirma
+    \item Lição de sistemas: a escolha de arquitetura só se avalia com as \emph{dependências} entre as partes; ignorar a causa comum superestima o ganho da redundância
+    \item Turboélice $\times$ turbofan: os dados publicados não permitem ordenar
+  \end{itemize}
+  \vspace{3mm}
+  \textbf{Próximos passos}: filtrar eventos em voo no SDRS, obter horas voadas por frota e tratar o TSO com censura.
+\end{frame}
+
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[ieeeblue] (current page.north west) rectangle ([yshift=-4mm]current page.north east);
+    \fill[ieeeblue] (current page.south west) rectangle ([yshift=4mm]current page.south east);
+  \end{tikzpicture}
+  \vfill
+  \begin{center}
+    {\color{ieeedark}\Huge\bfseries Obrigado!\par}
+    \vspace{4mm}
+    {\large Perguntas?\par}
+  \end{center}
+  \vfill
+\end{frame}
+
+% ======================= Apoio para a arguição =======================
+\appendix
+\begin{frame}{Apoio: sensibilidade, rede bayesiana e Weibull}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Sensibilidade} (mínimo a máximo de cada parâmetro)
+      \begin{itemize}
+        \item Taxa total: $F(1\,\mathrm{h})$ varia 10$\times$ (pistão), 6,7$\times$ (turboélice) e 20$\times$ (turbofan)
+        \item $\beta$ e $\lambda_u$: não mudam $F(1\,\mathrm{h})$, porque a taxa publicada é preservada; só redistribuem o Pareto
+      \end{itemize}
+      \textbf{Rede bayesiana}
+      \begin{itemize}
+        \item Diagnóstico: $P(\text{bloco}\mid\text{falha})$ reproduz o Pareto; em 1000~h, o núcleo vai de 57,1\% para 58,6\%
+        \item Atualização Dirichlet: o \emph{prior} quase não pesa diante de milhares de registros
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Weibull do TSO} (pistão, $n=10$)
+      \begin{itemize}
+        \item Forma 2,3 (IC 95\% de 1,4 a 6,0), escala de 1074~h
+        \item Teste contra a exponencial: $p = 0{,}009$
+        \item Só motores que falharam, sem censura: resultado indicativo
+      \end{itemize}
+      \textbf{Consistência da classificação}
+      \begin{itemize}
+        \item Dupla classificação independente ($n=7$): $\kappa =$ \pendente{DADO: kappa}
+      \end{itemize}
+      \textbf{Combustível, contado à parte}
+      \begin{itemize}
+        \item Pistão: 124 ocorrências, 98 delas acidentes
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}

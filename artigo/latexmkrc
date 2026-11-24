@@ -1,0 +1,4 @@
+# latexmkrc — honored by Overleaf and local latexmk. Keep in sync with Menu → Compiler.
+$pdf_mode = 1;            # 1 = pdflatex, 4 = lualatex, 5 = xelatex
+$bibtex_use = 2;          # run bibtex/biber when needed; delete .bbl on clean
+$pdflatex = 'pdflatex -interaction=nonstopmode -halt-on-error -file-line-error %O %S';
