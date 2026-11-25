@@ -12,3 +12,6 @@ wheels/
 # NTSB bruto: 630 MB, só serve para regerar os CSV que já estão em data/raw/ntsb/
 data/raw/ntsb/avall.mdb
 data/raw/ntsb/avall.zip
+
+# macOS
+.DS_Store
