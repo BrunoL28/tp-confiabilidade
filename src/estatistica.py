@@ -1,18 +1,7 @@
-"""Estatística de apoio: atualização bayesiana (Dirichlet e Gama-Poisson) e teste da taxa constante."""
+"""Estatística de apoio: atualização Gama-Poisson das taxas e teste da taxa constante."""
 import numpy as np
 import pandas as pd
 from scipy import stats
-
-
-def atualizar_fracoes(frac_prior, contagens, forca_prior):
-    """Prior Dirichlet(forca_prior * frac_prior) + contagens multinomiais -> posteriori Dirichlet.
-    É o modelo Gama-Poisson por bloco com exposição comum, condicionado ao total de falhas:
-    não precisa das horas voadas. Devolve média e intervalo de 95% de cada fração."""
-    a0 = forca_prior * np.asarray(frac_prior, float)
-    a = a0 + np.asarray(contagens, float)
-    A = a.sum()
-    return pd.DataFrame({"prior": a0 / a0.sum(), "n": np.asarray(contagens, int), "posteriori": a / A,
-                         "ic95_inf": stats.beta.ppf(0.025, a, A - a), "ic95_sup": stats.beta.ppf(0.975, a, A - a)})
 
 
 def gama_poisson(taxa_prior, cv_prior, n_falhas, horas):

@@ -51,9 +51,6 @@ Nas turbinas, com 69 e 45 registros, os intervalos são largos. No turboélice, 
 No turbofan, lideram os compressores, com 40\% (27\% a 55\%), as turbinas, com 27\%, e o combustível, com 18\%; o fan, com um único registro, fica com 2\%.
 Nos dois motores a turbina, as partes rotativas do gerador de gás concentram mais da metade das falhas.
 
-Com poucos registros, o \emph{prior} da atualização Dirichlet passa a pesar.
-No pistão, as frações praticamente não mudam; no turbofan, os compressores passam de 40\% para 34\%, e a lubrificação, sem nenhum registro, sobe de 0 para 5\%.
-Na rede bayesiana, a probabilidade de cada bloco dado que o motor falhou em 1~h coincide com o Pareto, como se espera para eventos raros; em 1000~h, o núcleo do pistão sobe de 60,1\% para 61,5\%.
 
 \subsection{Redundância}\label{sec:redundancia}
 
@@ -78,7 +75,7 @@ Na rede bayesiana, a probabilidade de cada bloco dado que o motor falhou em 1~h 
 Os pares reduzem em cerca de 10 vezes a probabilidade de perder a função (Tabela~\ref{tab:redundancia}).
 O ganho é limitado por $\beta$: com $\beta=0{,}1$, quase toda a probabilidade de falha do par vem da causa comum, e o ganho fica perto de $1/\beta$.
 Sem os dois pares, o motor a pistão teria uma probabilidade de falha em 1~h 5,8\% maior, $\num{1.31e-4}$ contra $\num{1.24e-4}$.
-A rede bayesiana dá a mesma leitura no sentido inverso: voar com um magneto já inoperante eleva $F(1\,\mathrm{h})$ em 5,2\%, e com uma bomba inoperante, em 0,6\%.
+A coluna ``sem o par'' é também o risco de voar com uma unidade já inoperante: decolar com um magneto em pane eleva $F(1\,\mathrm{h})$ em 5,2\%, e com uma bomba em pane, em 0,6\%.
 No turbofan, o FADEC tem um único registro, e a taxa da unidade vai de 0,0002 a 0,011 \pcmh{} no intervalo de Jeffreys; mesmo no máximo, a duplicação quase não altera o resultado.
 Como falhas que o próprio par tolera raramente terminam em acidente, as taxas dos pares tendem a estar subestimadas.
 

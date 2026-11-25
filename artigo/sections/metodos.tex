@@ -70,6 +70,7 @@ Os limites regulatórios entram só como máximos, e o mínimo do turbofan é as
 
 A taxa publicada $\lambda$ é preservada em um voo de 1~h: os blocos em série recebem $\lambda_s=\lambda-\sum_p[-\ln R_p(1\,\mathrm{h})]$, isto é, o que sobra depois da contribuição dos pares.
 Uma consequência é que $\beta$ e $\lambda_u$ apenas redistribuem a taxa entre os blocos, sem alterar a probabilidade de falha em 1~h.
+A proposta previa atualizar as taxas absolutas por um modelo Gama--Poisson, mas o NTSB não traz horas voadas por frota; sem a exposição, essa etapa não foi executada.
 
 \subsection{Base do NTSB}\label{sec:ntsb}
 
@@ -111,14 +112,6 @@ Se a taxa de falha é Weibull, $h(t)\propto t^{k-1}$, a chance de um avião com 
 dá o parâmetro de forma $k=1+b$, com intervalo de Wald; $k=1$ é a taxa constante do RBD.
 A mesma base dá a proporção de falhas de motor com vítima fatal, por tecnologia e número de motores, com intervalo de Wilson~\cite{wilson1927}.
 
-\subsection{Rede bayesiana e atualização das frações}\label{sec:bayes}
-
-O RBD foi convertido em uma rede bayesiana equivalente~\cite{bobbio2001}, com um nó-raiz por bloco em série, três por par (unidades A e B e causa comum) e nós determinísticos até o nó do motor.
-Com no máximo 12 raízes, a distribuição conjunta é enumerada e a inferência é exata.
-A rede responde a duas perguntas: dada a falha do motor, qual bloco é a causa mais provável; e quanto sobe a probabilidade de falha quando uma unidade de um par já está inoperante.
-As frações também foram atualizadas por um modelo Dirichlet--multinomial, com as frações iniciais da proposta como \emph{prior} (20 pseudocontagens).
-A proposta previa ainda atualizar as taxas absolutas por um modelo Gama--Poisson, mas o NTSB não traz horas voadas por frota; sem a exposição, essa etapa não foi executada.
-
 \subsection{Sensibilidade e implementação}\label{sec:sensib}
 
 Os índices foram calculados para um voo de 1~h e para um ano de 1000~h, e a sensibilidade leva cada parâmetro ($\lambda$, $\beta$ e $\lambda_u$) do mínimo ao máximo de sua faixa, com os demais no valor nominal.
@@ -127,6 +120,6 @@ Todo o processamento foi feito em Python, em um \emph{pipeline} reprodutível qu
 \subsection{Declaração de uso de inteligência artificial}\label{sec:ia}
 
 \emph{Ferramenta:} Claude Code, assistente de programação da Anthropic, com o modelo Claude Opus.
-\emph{Finalidade:} escrever e depurar o código Python do \emph{pipeline} (tratamento das bases, contagens, modelo RBD, rede bayesiana, estatística e figuras) e apoiar a redação e a formatação em \LaTeX{} deste artigo.
+\emph{Finalidade:} escrever e depurar o código Python do \emph{pipeline} (tratamento das bases, contagens, modelo RBD, estatística e figuras) e apoiar a redação e a formatação em \LaTeX{} deste artigo.
 \emph{Estratégia:} a equipe definiu o escopo, as hipóteses de modelagem e os critérios de classificação, e montou a correspondência entre os códigos de componente do NTSB e os blocos do RBD; a ferramenta produziu código e rascunhos de texto a partir dessas decisões e dos resultados; todo número do texto vem das tabelas geradas pelo \emph{pipeline}, e as referências foram conferidas nas fontes originais.
 \emph{Responsabilidade:} os autores revisaram o código, os resultados e o texto, e respondem integralmente pelo conteúdo do trabalho.

@@ -42,7 +42,7 @@ As falas abaixo têm cerca de 250 palavras por pessoa, o que dá 2 min em ritmo 
 **Slide 6: método (65 s)**
 > O modelo supõe taxa constante. Em série, as confiabilidades se multiplicam. Nos pares, uma fração beta das falhas é de causa comum, como combustível contaminado nas duas bombas, e essa parte derruba o par inteiro. É a equação do slide.
 > A taxa total de cada motor vem da literatura: **12,4** para o pistão, **0,15** para o turboélice e **0,20** para o turbofan, por 100 mil horas. Essa taxa é distribuída entre os blocos pela fração de registros de cada um. Para isso, usamos só a base do NTSB, de 2008 a 2026: **2 899 falhas de motor** em aviões, identificadas pela sequência de eventos, com a pane seca contada à parte. Cada achado de componente tem um código no padrão ATA, e cada código vai para um bloco do diagrama. Foram **1 109 registros** atribuídos a blocos.
-> As frações têm intervalo de confiança de Jeffreys. Também montamos uma rede bayesiana equivalente ao diagrama e testamos a taxa constante com o tempo de motor. A Eduarda mostra o que saiu disso.
+> As frações têm intervalo de confiança de Jeffreys, e testamos a hipótese de taxa constante com o tempo de motor. A Eduarda mostra o que saiu disso.
 
 ---
 
@@ -62,7 +62,7 @@ As falas abaixo têm cerca de 250 palavras por pessoa, o que dá 2 min em ritmo 
 
 **Slide 9: redundância interna (55 s)**
 > Os pares redundantes reduzem em cerca de **10 vezes** a chance de perder a função. Esse número não é coincidência: com beta igual a 0,1, quase toda a falha do par vem da causa comum, e o ganho fica perto de 1 sobre beta. Ou seja, a causa comum limita o que a duplicação consegue entregar.
-> Sem os dois pares, o motor a pistão falharia **5,8%** mais. A rede bayesiana confirma pelo outro lado: decolar com um magneto já inoperante aumenta o risco do voo em 5,2%. No FADEC, há um único registro no NTSB, porque falhas que o próprio par tolera raramente viram acidente.
+> Sem os dois pares, o motor a pistão falharia **5,8%** mais. O mesmo cálculo responde a uma pergunta prática: decolar com um magneto já em pane aumenta o risco do voo em 5,2%. No FADEC, há um único registro no NTSB, porque falhas que o próprio par tolera raramente viram acidente.
 
 **Slide 10: dois pistões × uma turbina (65 s)**
 > Agora a pergunta principal: dois motores menos confiáveis compensam um motor mais confiável? Se as falhas dos dois pistões fossem independentes, a perda total de propulsão seria de 1,5 em 100 milhões por hora, muito melhor que uma turbina.
@@ -88,7 +88,7 @@ As falas abaixo têm cerca de 250 palavras por pessoa, o que dá 2 min em ritmo 
 
 ## Arguição (5 min)
 
-O slide 15 fica depois do encerramento, como apoio, com sensibilidade, rede bayesiana e Weibull. Cada pergunta tem um responsável, que pode passar a palavra.
+O slide 15 fica depois do encerramento, como apoio, com sensibilidade, blocos sem registro e Weibull. Cada pergunta tem um responsável, que pode passar a palavra.
 
 | Pergunta provável | Quem responde | Resposta curta |
 |---|---|---|

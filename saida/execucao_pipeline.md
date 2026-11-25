@@ -1,6 +1,6 @@
 # Execução do pipeline
 
-Gerado por `src/executar_tudo.py` em 24/11/2026 21:37. Base: NTSB (avall, 2008 a 2026).
+Gerado por `src/executar_tudo.py` em 25/11/2026 08:04. Base: NTSB (avall, 2008 a 2026).
 
 ## 02_tratar_ntsb.py
 
@@ -205,57 +205,6 @@ F_motor_sem_nenhum_par                      0.0001312       0.0001312         2.
 ```
 
 ## 04_bayes_weibull.py
-
-### Diagnóstico: P(subsistema falhou | motor falhou em 1 h), três mais prováveis
-
-```text
-     motor                                    rotulo  p_dado_falha
-    pistao Cilindros, válvulas, pistões, virabrequim         0.601
-    pistao                              Lubrificação         0.143
-    pistao                      Carburador / injeção         0.137
-turboelice             Turbinas (compressor e livre)         0.319
-turboelice                                Compressor         0.203
-turboelice                         Combustível (FCU)         0.159
-  turbofan                      Compressores LP e HP         0.400
-  turbofan                          Turbinas HP e LP         0.266
-  turbofan                               Combustível         0.178
-```
-
-### Previsão com evidência
-
-```text
-   motor                                                evidencia  p_falha_1h_sem_evidencia  p_falha_1h_com_evidencia  fator
-  pistao uma unidade de Bombas de combustível (par) já inoperante                  0.000124                  0.000125   1.01
-  pistao              uma unidade de Magnetos (par) já inoperante                  0.000124                   0.00013   1.05
-turbofan             uma unidade de FADEC A/B (par) já inoperante                     2e-06                  2.02e-06   1.01
-```
-
-### Frações: prior (provisório) x posteriori
-
-```text
- prior   n  posteriori  ic95_inf  ic95_sup      motor              bloco
-  0.08  60       0.068     0.053     0.086     pistao           admissao
-  0.22 121       0.139     0.117     0.163     pistao carburador_injecao
-  0.42 532       0.600     0.568     0.632     pistao             nucleo
-  0.15 127       0.144     0.122     0.168     pistao       lubrificacao
-  0.03   4       0.005     0.002     0.011     pistao      arrefecimento
-  0.10  36       0.042     0.030     0.056     pistao  helice_governador
-  0.03   0       0.007     0.000     0.031 turboelice         entrada_ar
-  0.15  14       0.191     0.117     0.278 turboelice         compressor
-  0.05   1       0.022     0.003     0.062 turboelice   camara_combustao
-  0.30  22       0.315     0.223     0.414 turboelice           turbinas
-  0.12   5       0.083     0.036     0.148 turboelice      caixa_reducao
-  0.12   7       0.106     0.051     0.177 turboelice  helice_governador
-  0.15  11       0.157     0.090     0.239 turboelice    combustivel_fcu
-  0.08   9       0.119     0.061     0.194 turboelice       lubrificacao
-  0.08   1       0.040     0.007     0.099   turbofan                fan
-  0.20  18       0.338     0.229     0.457   turbofan       compressores
-  0.05   2       0.046     0.010     0.108   turbofan   camara_combustao
-  0.20  12       0.246     0.150     0.357   turbofan           turbinas
-  0.20   8       0.185     0.101     0.287   turbofan        combustivel
-  0.17   0       0.052     0.013     0.118   turbofan       lubrificacao
-  0.10   4       0.092     0.035     0.173   turbofan   caixa_acessorios
-```
 
 > Gama-Poisson das taxas: exposicao_horas não informada em parametros.yaml - pulada (o NTSB não traz horas voadas da frota).
 

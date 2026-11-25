@@ -128,7 +128,6 @@
         \item FMEA, FTA e RBD em propulsão, com pouca informação de campo (NASA, 2000)
         \item RBD em série de um turboeixo a partir de registros de campo (Samuel \emph{et al.}, 2006)
         \item Fator $\beta$ para causa comum (Ebeling, 1997)
-        \item Árvore de falhas $\rightarrow$ rede bayesiana (Bobbio \emph{et al.}, 2001)
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -262,7 +261,7 @@
     \item Ganho: $F$ de uma unidade sobre $F$ do par. Sem o par: aumento em $F(1\,\mathrm{h})$ do motor
     \item O par reduz em cerca de \destaque{10 vezes} a chance de perder a função, e esse ganho é limitado pela causa comum: fica perto de $1/\beta$, com $\beta = 0{,}1$
     \item Sem os dois pares, o pistão falharia \destaque{5,8\%} mais em 1~h
-    \item Rede bayesiana: voar com um magneto já inoperante aumenta o risco em 5,2\%
+    \item O mesmo número é o risco de decolar com um magneto já em pane: +5,2\%
     \item FADEC: um único registro no NTSB; falhas que o par tolera raramente viram acidente
   \end{itemize}
 \end{frame}
@@ -342,7 +341,7 @@
 
 % ======================= Apoio para a arguição =======================
 \appendix
-\begin{frame}{Apoio: sensibilidade, rede bayesiana e Weibull}
+\begin{frame}{Apoio: sensibilidade, blocos sem registro e Weibull}
   \small
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
@@ -351,10 +350,10 @@
         \item Taxa total: $F(1\,\mathrm{h})$ varia 10$\times$ (pistão), 6,7$\times$ (turboélice) e 20$\times$ (turbofan)
         \item $\beta$ e $\lambda_u$: não mudam $F(1\,\mathrm{h})$, porque a taxa publicada é preservada; só redistribuem o Pareto
       \end{itemize}
-      \textbf{Rede bayesiana}
+      \textbf{Blocos sem registro}
       \begin{itemize}
-        \item Diagnóstico: $P(\text{bloco}\mid\text{falha})$ reproduz o Pareto; em 1000~h, o núcleo vai de 60,1\% para 61,5\%
-        \item Atualização Dirichlet: o \emph{prior} quase não pesa no pistão; no turbofan, compressores de 40\% para 34\%
+        \item Lubrificação do turbofan e entrada de ar do turboélice: fração 0
+        \item Zero registros não é taxa zero: o limite de Jeffreys vai a 5\% e 4\%
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}

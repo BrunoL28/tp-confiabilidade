@@ -15,7 +15,7 @@ uv run python src/executar_tudo.py        # etapas 2 a 4, com o que está em dat
 | 1. Arquitetura de cada motor em diagrama de blocos | `config/blocos_rbd.csv`, `rbd.py` |
 | 2. λ, MTBF e R(t) de cada motor | `metricas_motores.csv`; hipótese de taxa constante testada em `weibull_tempo_motor.csv` |
 | 3. Efeito das redundâncias (magnetos, FADEC, dois motores) | `redundancia_interna.csv`, `bimotor_*.csv`, `ntsb_prob_fatal.csv` |
-| 4. Subsistemas que mais contribuem para a falha | `pareto_blocos.csv`, `rede_bayesiana_diagnostico.csv` |
+| 4. Subsistemas que mais contribuem para a falha | `pareto_blocos.csv` |
 
 ## Etapas
 
@@ -24,9 +24,9 @@ uv run python src/executar_tudo.py        # etapas 2 a 4, com o que está em dat
 | 1 | `01_extrair_ntsb.py` | Baixa o `avall.zip` do NTSB e exporta para CSV as tabelas events, aircraft, engines, Findings e Events_Sequence (mdbtools) | internet |
 | 2 | `02_tratar_ntsb.py` | Uma linha por avião-evento; falha de motor pelos códigos da Events_Sequence; falhas por bloco do RBD pelos findings; P(evento fatal \| falha), monomotor × multimotor; combustível à parte | etapa 1 |
 | 3 | `03_analise_confiabilidade.py` | λ, MTBF, R(t), Pareto, redundâncias, dois pistões × uma turbina, sensibilidade; figuras | etapa 2 e config |
-| 4 | `04_bayes_weibull.py` | Rede bayesiana (diagnóstico e previsão), atualização das frações, Gama–Poisson, forma de Weibull pelo tempo de motor | etapas 2 e 3 |
+| 4 | `04_bayes_weibull.py` | Gama–Poisson (pulado sem horas da frota), forma de Weibull pelo tempo de motor | etapas 2 e 3 |
 
-`rbd.py` é o modelo (Eq. 1 da proposta), `rede_bayesiana.py` a rede equivalente, `estatistica.py` as rotinas estatísticas.
+`rbd.py` é o modelo (Eq. 1 da proposta), `estatistica.py` as rotinas estatísticas. O risco de voar com uma unidade redundante já inoperante sai do próprio RBD (`aumento_sem_este_par_pct` em `redundancia_interna.csv`), sem rede bayesiana.
 
 ## Tratamento da base do NTSB (etapa 2)
 

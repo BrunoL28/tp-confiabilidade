@@ -34,14 +34,14 @@ O script leva cerca de 30 segundos, roda as etapas 2, 3 e 4 em ordem e para no p
 | O que sai | Onde |
 |---|---|
 | Base tratada (uma linha por avião-evento) e falhas por bloco | `data/processed/ntsb_avioes.csv`, `data/processed/contagens_ntsb.csv` |
-| Tabelas (NTSB, métricas, Pareto, redundância, sensibilidade, rede bayesiana, Weibull) | `saida/tabelas/*.csv` |
+| Tabelas (NTSB, métricas, Pareto, redundância, sensibilidade, Weibull) | `saida/tabelas/*.csv` |
 | Figuras | `saida/figuras/*.png` e, em PDF para o artigo, `saida/figuras/artigo/` |
 
 Conferências rápidas depois de rodar:
 
 - **Aviso nas figuras:** o rodapé "frações provisórias" não deve aparecer. Se aparecer, a etapa 2 não gerou `contagens_ntsb.csv`.
 - **Etapa 2:** `ntsb_eventos.csv` tem uma linha para cada código de `eventos_falha_motor` (`config/parametros.yaml`).
-- **Etapa 4:** `fracoes_posteriori.csv` e `weibull_tempo_motor.csv` existem em `saida/tabelas/`.
+- **Etapa 4:** `weibull_tempo_motor.csv` existe em `saida/tabelas/`.
 
 ## 4. Mudou alguma coisa? Rode só o que depende dela
 
