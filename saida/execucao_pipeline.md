@@ -1,6 +1,6 @@
 # Execução do pipeline
 
-Gerado por `src/executar_tudo.py` em 24/11/2026 21:23. Base: NTSB (avall, 2008 a 2026).
+Gerado por `src/executar_tudo.py` em 24/11/2026 21:37. Base: NTSB (avall, 2008 a 2026).
 
 ## 02_tratar_ntsb.py
 

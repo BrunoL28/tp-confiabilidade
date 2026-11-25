@@ -136,7 +136,7 @@
       \begin{itemize}
         \item ATSB: taxas medidas para motores a pistão
         \item Turbinas: em geral \emph{limites} regulatórios (ETOPS, SET-IMC), que dizem quanto o motor pode falhar, não quanto falha
-        \item SDRS, NTSB e CENIPA: registros por componente, mas \emph{sem horas voadas}
+        \item NTSB: achados por componente e horas do motor, mas \emph{sem horas voadas da frota}
       \end{itemize}
     \end{column}
   \end{columns}
@@ -175,22 +175,22 @@
       \small
       \textbf{Dados}
       \begin{center}
-      \begin{tabular}{@{}lr@{}}
+      \begin{tabular}{@{}lrr@{}}
         \toprule
-        Fonte & Registros \\
+        NTSB, 2008--2026 & Falhas & Registros \\
         \midrule
-        SDRS (FAA) & 4295 \\
-        NTSB & 2097 \\
-        CENIPA (relatórios lidos) & 40 \\
+        Pistão & 2562 & 994 \\
+        Turboélice & 176 & 69 \\
+        Turbofan & 161 & 46 \\
         \midrule
-        Total & \destaque{6432} \\
+        Total & 2899 & \destaque{1109} \\
         \bottomrule
       \end{tabular}
       \end{center}
       \begin{itemize}
+        \item Falha: perda de potência na sequência de eventos; pane seca à parte
+        \item Bloco: código ATA do achado (ex.: 8530 cilindros, 7414 magneto)
         \item $\lambda$ nominal: 12,4; 0,15; 0,20 \pcmh
-        \item CENIPA: 86 relatórios finais lidos
-        \item Intervalos: Jeffreys e Wilson; rede bayesiana e Weibull
       \end{itemize}
     \end{column}
   \end{columns}
@@ -231,15 +231,15 @@
     \begin{column}{0.48\textwidth}
       \small
       \begin{itemize}
-        \item Pistão: núcleo mecânico com \destaque{57\%}; os 5 blocos em série sem redundância somam 98\%
-        \item Magnetos duplicados: só 1\%
+        \item Pistão: núcleo mecânico com \destaque{60\%}; os 5 blocos em série sem redundância somam 99\%
+        \item Magnetos duplicados: só 0,6\%
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
       \small
       \begin{itemize}
-        \item Fan do turbofan (28\%): lemos 101 registros, e \destaque{94} eram achados em solo na manutenção
-        \item 68\% dos registros do CFM56-7 vêm de um único operador
+        \item Turbinas: compressores e turbinas lideram (\destaque{52\%} no turboélice, \destaque{67\%} no turbofan)
+        \item Poucos registros (69 e 45): intervalos largos
       \end{itemize}
     \end{column}
   \end{columns}
@@ -252,18 +252,18 @@
     \toprule
     Par & Registros & $\lambda_u$ (\pcmh) & Ganho & Sem o par \\
     \midrule
-    Magnetos (pistão) & 500 & 1,30 & 10$\times$ & +9,4\% \\
-    Bombas (pistão) & 138 & 0,36 & 10$\times$ & +2,6\% \\
-    FADEC A/B (turbofan) & 19 & 0,0006 & 10$\times$ & +0,3\% \\
+    Magnetos (pistão) & 102 & 0,72 & 10$\times$ & +5,2\% \\
+    Bombas (pistão) & 12 & 0,085 & 10$\times$ & +0,6\% \\
+    FADEC A/B (turbofan) & 1 & 0,0022 & 10$\times$ & +1,0\% \\
     \bottomrule
   \end{tabular}
   \vspace{5mm}
   \begin{itemize}
     \item Ganho: $F$ de uma unidade sobre $F$ do par. Sem o par: aumento em $F(1\,\mathrm{h})$ do motor
     \item O par reduz em cerca de \destaque{10 vezes} a chance de perder a função, e esse ganho é limitado pela causa comum: fica perto de $1/\beta$, com $\beta = 0{,}1$
-    \item Sem os dois pares, o pistão falharia \destaque{12\%} mais em 1~h
-    \item Rede bayesiana: voar com um magneto já inoperante aumenta o risco em 9,4\%
-    \item FADEC: poucas falhas registradas, porque o próprio sistema tolera parte delas
+    \item Sem os dois pares, o pistão falharia \destaque{5,8\%} mais em 1~h
+    \item Rede bayesiana: voar com um magneto já inoperante aumenta o risco em 5,2\%
+    \item FADEC: um único registro no NTSB; falhas que o par tolera raramente viram acidente
   \end{itemize}
 \end{frame}
 
@@ -286,19 +286,19 @@
 \end{frame}
 
 % ======================= Pessoa 5 =======================
-\begin{frame}{Resultado 5: o que dizem as ocorrências no Brasil}
+\begin{frame}{Resultado 5: o que dizem as ocorrências do NTSB}
   \begin{columns}[c]
-    \begin{column}{0.53\textwidth}
-      \includegraphics[width=\textwidth]{figures/fig_cenipa_prob_acidente}
-      \centering{\scriptsize\color{cinza} CENIPA, 2007--2026: falhas de motor que terminaram em acidente, com IC de Wilson 95\%\par}
+    \begin{column}{0.55\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig_ntsb_prob_fatal}
     \end{column}
-    \begin{column}{0.45\textwidth}
+    \begin{column}{0.43\textwidth}
       \small
       \begin{itemize}
-        \item Turboélice: de 40\% para \destaque{4,8\%} com o segundo motor, 8 vezes menos
-        \item Pistão: de 62\% para \destaque{38\%}, só 1,6 vez menos
-        \item Jatos: nenhum acidente em 488 falhas
-        \item Ressalvas: subnotificação de incidentes leves; operações diferentes entre mono e multimotores
+        \item Falhas de motor com vítima fatal, 2008--2026
+        \item Pistão: \destaque{43\%} nos multimotores contra 11\% nos monomotores
+        \item Turboélice monomotor: \destaque{2,8\%}, perto do turbofan (2,9\%)
+        \item Falha de um motor no multimotor que chega ao NTSB é das mais graves: perda de controle com tração assimétrica
+        \item Ressalva: no multimotor, a falha que termina em pouso normal quase não entra na base
       \end{itemize}
     \end{column}
   \end{columns}
@@ -306,9 +306,9 @@
 
 \begin{frame}{Limitações}
   \begin{itemize}
-    \item \textbf{Frações por contagem}: supõem a mesma chance de registro para todos os blocos e somam, sem peso, fontes que medem coisas diferentes
-    \item \textbf{SDRS registra dificuldades, não só falhas}: o Pareto do turbofan mostra onde a manutenção encontra problemas
-    \item \textbf{Taxa constante em dúvida}: Weibull do TSO com forma 2,3 (IC de 1,4 a 6,0; $n = 10$), indício de desgaste
+    \item \textbf{Frações por contagem}: supõem a mesma chance de registro para todos os blocos; o NTSB vê sobretudo acidentes (2529 das 2562 falhas no pistão)
+    \item \textbf{Poucos dados nas turbinas}: 69 e 45 registros; motores por tipo, não por modelo; 535 achados genéricos fora da contagem
+    \item \textbf{Taxa constante}: caso-controle pelo TSO dá forma 0,99 (IC de 0,94 a 1,05; 903 falhas), mas supõe que os controles tenham a idade da frota
     \item \textbf{Sem horas voadas}: a atualização Gama--Poisson das taxas absolutas não foi possível
     \item \textbf{Taxa do turbofan}: vem do fabricante, sem estatística independente
   \end{itemize}
@@ -318,12 +318,12 @@
   \begin{itemize}
     \item O pistão falha \destaque{62 a 83 vezes} mais que as turbinas, e a diferença resiste a toda a faixa da literatura
     \item As falhas do pistão estão no \destaque{núcleo mecânico}, sem redundância; é ali que manutenção e projeto rendem mais
-    \item \destaque{Redundância não compensa tecnologia}: dois pistões só superam uma turbina com $\beta$ abaixo de 1,2--1,6\%, e o CENIPA confirma
+    \item \destaque{Redundância não compensa tecnologia}: dois pistões só superam uma turbina com $\beta$ abaixo de 1,2--1,6\%, e o NTSB confirma
     \item Lição de sistemas: a escolha de arquitetura só se avalia com as \emph{dependências} entre as partes; ignorar a causa comum superestima o ganho da redundância
     \item Turboélice $\times$ turbofan: os dados publicados não permitem ordenar
   \end{itemize}
   \vspace{3mm}
-  \textbf{Próximos passos}: filtrar eventos em voo no SDRS, obter horas voadas por frota e tratar o TSO com censura.
+  \textbf{Próximos passos}: obter horas voadas por frota, ampliar a base das turbinas e usar remoções em campo como limite superior de $\lambda_u$.
 \end{frame}
 
 \begin{frame}[plain]
@@ -353,20 +353,20 @@
       \end{itemize}
       \textbf{Rede bayesiana}
       \begin{itemize}
-        \item Diagnóstico: $P(\text{bloco}\mid\text{falha})$ reproduz o Pareto; em 1000~h, o núcleo vai de 57,1\% para 58,6\%
-        \item Atualização Dirichlet: o \emph{prior} quase não pesa diante de milhares de registros
+        \item Diagnóstico: $P(\text{bloco}\mid\text{falha})$ reproduz o Pareto; em 1000~h, o núcleo vai de 60,1\% para 61,5\%
+        \item Atualização Dirichlet: o \emph{prior} quase não pesa no pistão; no turbofan, compressores de 40\% para 34\%
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \textbf{Weibull do TSO} (pistão, $n=10$)
+      \textbf{Forma de Weibull} (caso-controle, monomotores)
       \begin{itemize}
-        \item Forma 2,3 (IC 95\% de 1,4 a 6,0), escala de 1074~h
-        \item Teste contra a exponencial: $p = 0{,}009$
-        \item Só motores que falharam, sem censura: resultado indicativo
+        \item Pistão, TSO: 0,99 (0,94--1,05), $p=0{,}79$: taxa constante
+        \item Pistão, TSN: 1,08 (1,02--1,13): desgaste leve na vida do motor
+        \item Turboélice, TSO: 1,28 (0,97--1,59), só 32 falhas
       \end{itemize}
       \textbf{Combustível, contado à parte}
       \begin{itemize}
-        \item Pistão: 124 ocorrências, 98 delas acidentes
+        \item Pistão: 1532 ocorrências, 174 com vítima fatal
       \end{itemize}
     \end{column}
   \end{columns}
