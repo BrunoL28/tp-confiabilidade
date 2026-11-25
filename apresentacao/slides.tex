@@ -1,72 +1,42 @@
 % Apresentação do projeto (10 min + 5 min de arguição). Compilar com pdfLaTeX.
-\documentclass[aspectratio=169,11pt]{beamer}
-
+\documentclass[aspectratio=169,10pt]{beamer}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazil]{babel}
 \usepackage{lmodern}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{amsmath}
 \usepackage{siunitx}
 \sisetup{output-decimal-marker={,}, group-separator={\,}, group-minimum-digits=4, exponent-product=\times}
 \usepackage{tikz}
-\usetikzlibrary{positioning,calc}
+\usetikzlibrary{positioning,calc,arrows.meta}
+\usetheme{default}
+\usecolortheme{beaver}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
 
-% ---------------- Estilo (cores da identidade IEEE) ----------------
-\definecolor{ieeeblue}{HTML}{00629B}
-\definecolor{ieeedark}{HTML}{002855}
-\definecolor{cinza}{HTML}{52514E}
+% Cores dos três motores (gráficos) e da ênfase, que segue o vermelho do tema beaver.
 \definecolor{pistao}{HTML}{2A78D6}
 \definecolor{turboelice}{HTML}{EB6834}
 \definecolor{turbofan}{HTML}{1BAF7A}
-
-\usetheme{default}
-\setbeamertemplate{navigation symbols}{}
-\setbeamercolor{frametitle}{fg=white,bg=ieeeblue}
-\setbeamercolor{title}{fg=ieeedark}
-\setbeamercolor{structure}{fg=ieeeblue}
-\setbeamercolor{normal text}{fg=black}
-\setbeamercolor{alerted text}{fg=ieeeblue}
-\setbeamerfont{frametitle}{size=\large,series=\bfseries}
-\setbeamertemplate{itemize items}[square]
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip
-  \begin{beamercolorbox}[wd=\paperwidth,ht=8.5mm,dp=3mm,leftskip=6mm]{frametitle}
-    \usebeamerfont{frametitle}\insertframetitle
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=4mm,dp=1.5mm,leftskip=6mm,rightskip=6mm]{}%
-    \color{cinza}\tiny Confiabilidade de motores aeronáuticos \textbar{} Engenharia de Sistemas, UFMG%
-    \hfill\insertframenumber\,/\,\inserttotalframenumber
-  \end{beamercolorbox}}}
-\setlength{\leftmargini}{1.2em}
-\newcommand{\destaque}[1]{{\color{ieeeblue}\bfseries #1}}
+\colorlet{ieeeblue}{darkred}
+\colorlet{cinza}{black!60}
+\newcommand{\destaque}[1]{\alert{\textbf{#1}}}
 \newcommand{\pcmh}{por $10^5$~h}
-\newcommand{\pendente}[1]{{\color{blue}[#1]}}
 
-\title{Análise Comparativa da Confiabilidade de Motores Aeronáuticos a Pistão, Turboélice e Turbofan}
-\author{Ana Amantea Leal Marques Afonso \and Bruno Lima Soares \and Eduarda Amaral de Oliveira \and Mariana Pinho Barroso Sousa \and Victor Almeida Morais}
-\institute{Engenharia de Sistemas, Universidade Federal de Minas Gerais\\Belo Horizonte, Brasil}
+\title{Confiabilidade de motores aeronáuticos a pistão, turboélice e turbofan}
+\subtitle{Diagramas de blocos, redundância e dados do NTSB}
+\author{Ana Amantea Leal Marques Afonso \and Bruno Lima Soares \and Eduarda Amaral de Oliveira
+  \and Mariana Pinho Barroso Sousa \and Victor Almeida Morais}
+\institute{Confiabilidade de Sistemas, Engenharia de Sistemas/UFMG, 2026/2}
 \date{2026}
 
 \begin{document}
 
 % ======================= Pessoa 1 =======================
-\begin{frame}[plain]
-  \begin{tikzpicture}[remember picture,overlay]
-    \fill[ieeeblue] (current page.north west) rectangle ([yshift=-4mm]current page.north east);
-    \fill[ieeeblue] (current page.south west) rectangle ([yshift=4mm]current page.south east);
-  \end{tikzpicture}
-  \vfill
-  \begin{center}
-    {\color{ieeedark}\LARGE\bfseries Análise Comparativa da Confiabilidade de Motores\\[1mm] Aeronáuticos a Pistão, Turboélice e Turbofan\par}
-    \vspace{6mm}
-    {\small Ana Amantea Leal Marques Afonso \quad Bruno Lima Soares \quad Eduarda Amaral de Oliveira\\[0.5mm]
-    Mariana Pinho Barroso Sousa \quad Victor Almeida Morais\par}
-    \vspace{3mm}
-    {\footnotesize\color{cinza}\textit{Engenharia de Sistemas, Universidade Federal de Minas Gerais}, Belo Horizonte, Brasil\par}
-  \end{center}
-  \vfill
+\begin{frame}
+\titlepage
 \end{frame}
 
 \begin{frame}{Motivação e objetivos}
@@ -325,17 +295,10 @@
   \textbf{Próximos passos}: obter horas voadas por frota, ampliar a base das turbinas e usar remoções em campo como limite superior de $\lambda_u$.
 \end{frame}
 
-\begin{frame}[plain]
-  \begin{tikzpicture}[remember picture,overlay]
-    \fill[ieeeblue] (current page.north west) rectangle ([yshift=-4mm]current page.north east);
-    \fill[ieeeblue] (current page.south west) rectangle ([yshift=4mm]current page.south east);
-  \end{tikzpicture}
+\begin{frame}{Obrigado}
+  \centering
   \vfill
-  \begin{center}
-    {\color{ieeedark}\Huge\bfseries Obrigado!\par}
-    \vspace{4mm}
-    {\large Perguntas?\par}
-  \end{center}
+  {\Large Perguntas?\par}
   \vfill
 \end{frame}
 
