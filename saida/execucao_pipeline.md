@@ -1,6 +1,6 @@
 # Execução do pipeline
 
-Gerado por `src/executar_tudo.py` em 25/11/2026 08:04. Base: NTSB (avall, 2008 a 2026).
+Gerado por `src/executar_tudo.py` em 25/11/2026 12:31. Bases: NTSB (avall, 2008 a 2026) e SDRS (FAA, 2008 a 2025).
 
 ## 02_tratar_ntsb.py
 
@@ -80,7 +80,47 @@ nucleo                 532           0         0
 turbinas                 0          22        12
 ```
 
-## 03_analise_confiabilidade.py
+## 03_tratar_sdrs.py
+
+> SDRS: relatos de 2008 em diante, sem os modelos ^(R22|R44|R66|47G|UH12)
+
+### Relatos por motor em cada filtro
+
+```text
+     motor                arquivo  relatos  duplicados  antes_de_ano_inicio  helicopteros  analisados  com_bloco  genericos  fora_do_modelo  ano_min  ano_max maior_operador  parcela_maior_operador
+    pistao pistao_lycoming540.csv     2746           0                  252          1026        1468        770         58             640     2008     2025           YAXA                   0.030
+turboelice  turboelice_pt6a34.csv      269           0                   14             0         255         77         46             132     2008     2025           AXSA                   0.026
+  turbofan   turbofan_cfm56_7.csv     6855           0                   80             0        6775       3093        807            2875     2008     2025           ASAA                   0.764
+```
+
+### Relatos por bloco
+
+```text
+motor               pistao  turboelice  turbofan
+bloco                                           
+admissao                78           0         0
+bombas                  65           0         0
+caixa_acessorios         0           0        45
+caixa_reducao            0           1         0
+camara_combustao         0           4         2
+carburador_injecao      61           0         0
+combustivel              0           0      1005
+combustivel_fcu          0          32         0
+compressor               0          12         0
+compressores             0           0       615
+entrada_ar               0           2         0
+fadec                    0           0       105
+fan                      0           0       883
+helice_governador       55           4         0
+lubrificacao            51           5       330
+magnetos               201           0         0
+nucleo                 259           0         0
+turbinas                 0          17       108
+```
+
+## 04_analise_confiabilidade.py
+
+> Frações e taxa das unidades: relatos de dificuldade em serviço (SDRS, FAA) (fonte_fracoes = sdrs)
 
 ### Métricas por motor
 
@@ -89,48 +129,108 @@ turbinas                 0          22        12
 motor                             pistao  turboelice  turbofan
 lambda_literatura_1e5h              12.4        0.15       0.2
 lambda_eq_1h_1e5h                   12.4        0.15       0.2
-lambda_eq_1000h_1e5h                12.4        0.15       0.2
-mtbf_sem_reparo_h                   8026   6.667e+05 4.999e+05
+lambda_eq_1000h_1e5h               12.45        0.15       0.2
+mtbf_sem_reparo_h                   7702   6.667e+05 4.998e+05
 mtbf_redundancia_restaurada_h       8065   6.667e+05     5e+05
 R_1h                              0.9999           1         1
 F_1h                            0.000124     1.5e-06     2e-06
 F_1h_lambda_min                   0.0001     1.5e-06     1e-06
 F_1h_lambda_max                0.0009995       1e-05     2e-05
-R_1000h_sem_reparo                0.8833      0.9985     0.998
+R_1000h_sem_reparo                0.8829      0.9985     0.998
 R_1000h_redundancia_restaurada    0.8834      0.9985     0.998
 F_1h_total_preservado           0.000124     1.5e-06     2e-06
 fracoes_provisorias                False       False     False
 razao_para_pistao                      1       82.66        62
 ```
 
+### Lambda por bloco (por 1e5 h)
+
+```text
+         motor                                     rotulo       estrutura     n    fracao  lambda_1e5h  lambda_inf_1e5h  lambda_sup_1e5h
+0       pistao                                   Admissão           serie    78    0.1548        1.868            1.225            18.23
+1       pistao                       Carburador / injeção           serie    61     0.121        1.461           0.9267            14.68
+2       pistao  Cilindros, válvulas, pistões, virabrequim           serie   259    0.5139        6.204              4.6            53.96
+3       pistao                               Lubrificação           serie    51    0.1012        1.222           0.7546            12.57
+4       pistao                              Arrefecimento           serie     0         0            0                0           0.4811
+5       pistao                        Hélice e governador           serie    55    0.1091        1.317           0.8231            13.42
+6       pistao       Bombas de combustível (cada unidade)  par redundante    65       NaN       0.7996           0.4949            8.297
+7       pistao                    Magnetos (cada unidade)  par redundante   201       NaN        2.473            1.691            23.45
+8   turboelice                              Entrada de ar           serie     2   0.02597     0.003896        0.0008154          0.08071
+9   turboelice                                 Compressor           serie    12    0.1558      0.02338          0.01322           0.2489
+10  turboelice                        Câmara de combustão           serie     4   0.05195     0.007792         0.002668           0.1188
+11  turboelice              Turbinas (compressor e livre)           serie    17    0.2208      0.03312          0.02092           0.3226
+12  turboelice                           Caixa de redução           serie     1   0.01299     0.001948        0.0002107          0.05909
+13  turboelice                        Hélice e governador           serie     4   0.05195     0.007792         0.002668           0.1188
+14  turboelice                          Combustível (FCU)           serie    32    0.4156      0.06234          0.04654           0.5271
+15  turboelice                               Lubrificação           serie     5   0.06494      0.00974         0.003781           0.1365
+16    turbofan                                        Fan           serie   883    0.2955        0.059           0.0279           0.6228
+17    turbofan                       Compressores LP e HP           serie   615    0.2058      0.04109          0.01913           0.4403
+18    turbofan                        Câmara de combustão           serie     2 0.0006693    0.0001336        1.389e-05         0.004282
+19    turbofan                           Turbinas HP e LP           serie   108   0.03614     0.007216         0.002985           0.0864
+20    turbofan                                Combustível           serie  1005    0.3363      0.06715          0.03191           0.7054
+21    turbofan                               Lubrificação           serie   330    0.1104      0.02205         0.009944           0.2436
+22    turbofan                        Caixa de acessórios           serie    45   0.01506     0.003007         0.001113          0.03973
+23    turbofan                   FADEC A/B (cada unidade)  par redundante   105       NaN     0.003514          0.00144           0.0425
+```
+
+### Frações NTSB x SDRS
+
+```text
+         motor               bloco                                     rotulo  n_ntsb  fracao_ntsb  ic_inf_ntsb  ic_sup_ntsb  lambda_unidade_1e5h_ntsb  n_sdrs  fracao_sdrs  ic_inf_sdrs  ic_sup_sdrs  lambda_unidade_1e5h_sdrs
+0       pistao            admissao                                   Admissão      60      0.06818      0.05293      0.08627                       NaN      78       0.1548       0.1252       0.1883                       NaN
+1       pistao  carburador_injecao                       Carburador / injeção     121       0.1375       0.1159       0.1614                       NaN      61        0.121      0.09474       0.1517                       NaN
+2       pistao              nucleo  Cilindros, válvulas, pistões, virabrequim     532       0.6045       0.5719       0.6365                       NaN     259       0.5139       0.4703       0.5573                       NaN
+3       pistao        lubrificacao                               Lubrificação     127       0.1443       0.1223       0.1687                       NaN      51       0.1012      0.07715       0.1298                       NaN
+4       pistao       arrefecimento                              Arrefecimento       4     0.004545     0.001536      0.01077                       NaN       0            0            0     0.004969                       NaN
+5       pistao   helice_governador                        Hélice e governador      36      0.04091      0.02929      0.05554                       NaN      55       0.1091      0.08415       0.1386                       NaN
+6       pistao              bombas                Bombas de combustível (par)      12          NaN          NaN          NaN                   0.08455      65          NaN          NaN          NaN                    0.7996
+7       pistao            magnetos                             Magnetos (par)     102          NaN          NaN          NaN                    0.7186     201          NaN          NaN          NaN                     2.473
+8   turboelice          entrada_ar                              Entrada de ar       0            0            0      0.03562                       NaN       2      0.02597     0.005436      0.08071                       NaN
+9   turboelice          compressor                                 Compressor      14       0.2029       0.1213       0.3088                       NaN      12       0.1558      0.08812       0.2489                       NaN
+10  turboelice    camara_combustao                        Câmara de combustão       1      0.01449     0.001568      0.06573                       NaN       4      0.05195      0.01779       0.1188                       NaN
+11  turboelice            turbinas              Turbinas (compressor e livre)      22       0.3188        0.218       0.4345                       NaN      17       0.2208       0.1395       0.3226                       NaN
+12  turboelice       caixa_reducao                           Caixa de redução       5      0.07246      0.02819       0.1515                       NaN       1      0.01299     0.001405      0.05909                       NaN
+13  turboelice   helice_governador                        Hélice e governador       7       0.1014      0.04654       0.1889                       NaN       4      0.05195      0.01779       0.1188                       NaN
+14  turboelice     combustivel_fcu                          Combustível (FCU)      11       0.1594      0.08776       0.2589                       NaN      32       0.4156       0.3103       0.5271                       NaN
+15  turboelice        lubrificacao                               Lubrificação       9       0.1304      0.06655       0.2245                       NaN       5      0.06494      0.02521       0.1365                       NaN
+16    turbofan                 fan                                        Fan       1      0.02222     0.002408      0.09919                       NaN     883       0.2955       0.2794       0.3121                       NaN
+17    turbofan        compressores                       Compressores LP e HP      18          0.4       0.2667       0.5457                       NaN     615       0.2058       0.1916       0.2206                       NaN
+18    turbofan    camara_combustao                        Câmara de combustão       2      0.04444     0.009349        0.135                       NaN       2    0.0006693    0.0001391     0.002146                       NaN
+19    turbofan            turbinas                           Turbinas HP e LP      12       0.2667       0.1548       0.4075                       NaN     108      0.03614      0.02989      0.04329                       NaN
+20    turbofan         combustivel                                Combustível       8       0.1778      0.08781       0.3076                       NaN    1005       0.3363       0.3196       0.3534                       NaN
+21    turbofan        lubrificacao                               Lubrificação       0            0            0        0.054                       NaN     330       0.1104      0.09958       0.1221                       NaN
+22    turbofan    caixa_acessorios                        Caixa de acessórios       4      0.08889      0.03075       0.1976                       NaN      45      0.01506      0.01115      0.01991                       NaN
+23    turbofan               fadec                            FADEC A/B (par)       1          NaN          NaN          NaN                  0.002222     105          NaN          NaN          NaN                  0.003514
+```
+
 ### Pareto (voo de 1 h)
 
 ```text
          motor                                     rotulo  taxa_1e5h   parcela  parcela_min  parcela_max
-0       pistao  Cilindros, válvulas, pistões, virabrequim      7.448    0.6006       0.5682       0.6323
-1       pistao                               Lubrificação      1.778    0.1434       0.1215       0.1676
-2       pistao                       Carburador / injeção      1.694    0.1366       0.1152       0.1604
-3       pistao                                   Admissão       0.84   0.06774      0.05259      0.08571
-4       pistao                        Hélice e governador      0.504   0.04064       0.0291      0.05518
-5       pistao                             Magnetos (par)    0.07187  0.005796     0.004702     0.007086
-6       pistao                              Arrefecimento      0.056  0.004516     0.001526       0.0107
-7       pistao                Bombas de combustível (par)   0.008455 0.0006818    0.0003715      0.00116
-8   turboelice              Turbinas (compressor e livre)    0.04783    0.3188        0.218       0.4345
-9   turboelice                                 Compressor    0.03043    0.2029       0.1213       0.3088
-10  turboelice                          Combustível (FCU)    0.02391    0.1594      0.08776       0.2589
-11  turboelice                               Lubrificação    0.01957    0.1304      0.06655       0.2245
-12  turboelice                        Hélice e governador    0.01522    0.1014      0.04654       0.1889
-13  turboelice                           Caixa de redução    0.01087   0.07246      0.02819       0.1515
-14  turboelice                        Câmara de combustão   0.002174   0.01449     0.001568      0.06573
-15  turboelice                              Entrada de ar          0         0            0      0.03562
-16    turbofan                       Compressores LP e HP    0.07991    0.3996       0.2664       0.5451
-17    turbofan                           Turbinas HP e LP    0.05327    0.2664       0.1546        0.407
-18    turbofan                                Combustível    0.03552    0.1776      0.08772       0.3073
-19    turbofan                        Caixa de acessórios    0.01776   0.08879      0.03072       0.1974
-20    turbofan                        Câmara de combustão   0.008879    0.0444     0.009339       0.1349
-21    turbofan                                        Fan    0.00444    0.0222     0.002406      0.09908
-22    turbofan                            FADEC A/B (par)  0.0002222  0.001111    0.0001181     0.005379
-23    turbofan                               Lubrificação          0         0            0      0.05394
+0       pistao  Cilindros, válvulas, pistões, virabrequim      6.204    0.5003       0.4579       0.5426
+1       pistao                                   Admissão      1.868    0.1507       0.1219       0.1833
+2       pistao                       Carburador / injeção      1.461    0.1178      0.09224       0.1477
+3       pistao                        Hélice e governador      1.317    0.1062      0.08193       0.1349
+4       pistao                               Lubrificação      1.222   0.09852      0.07511       0.1264
+5       pistao                             Magnetos (par)     0.2473   0.01994      0.01691      0.02346
+6       pistao                Bombas de combustível (par)    0.07997  0.006449     0.004949     0.008297
+7       pistao                              Arrefecimento          0         0            0     0.004838
+8   turboelice                          Combustível (FCU)    0.06234    0.4156       0.3103       0.5271
+9   turboelice              Turbinas (compressor e livre)    0.03312    0.2208       0.1395       0.3226
+10  turboelice                                 Compressor    0.02338    0.1558      0.08812       0.2489
+11  turboelice                               Lubrificação    0.00974   0.06494      0.02521       0.1365
+12  turboelice                        Câmara de combustão   0.007792   0.05195      0.01779       0.1188
+13  turboelice                        Hélice e governador   0.007792   0.05195      0.01779       0.1188
+14  turboelice                              Entrada de ar   0.003896   0.02597     0.005436      0.08071
+15  turboelice                           Caixa de redução   0.001948   0.01299     0.001405      0.05909
+16    turbofan                                Combustível    0.06715    0.3358        0.319       0.3528
+17    turbofan                                        Fan      0.059     0.295       0.2789       0.3115
+18    turbofan                       Compressores LP e HP    0.04109    0.2055       0.1913       0.2202
+19    turbofan                               Lubrificação    0.02205    0.1102      0.09941       0.1218
+20    turbofan                           Turbinas HP e LP   0.007216   0.03608      0.02984      0.04322
+21    turbofan                        Caixa de acessórios   0.003007   0.01503      0.01113      0.01987
+22    turbofan                            FADEC A/B (par)  0.0003514  0.001757      0.00144     0.002125
+23    turbofan                        Câmara de combustão  0.0001336 0.0006682    0.0001389     0.002142
 ```
 
 ### Redundância interna
@@ -139,16 +239,16 @@ razao_para_pistao                      1       82.66        62
                                                     0               1                2
 motor                                          pistao          pistao         turbofan
 par                       Bombas de combustível (par)  Magnetos (par)  FADEC A/B (par)
-taxa_unidade_1e5h                             0.08455          0.7186         0.002222
+taxa_unidade_1e5h                              0.7996           2.473         0.003514
 beta                                              0.1             0.1              0.1
-F_unidade_unica                             8.455e-07       7.186e-06        2.222e-08
-F_par                                       8.455e-08       7.187e-07        2.222e-09
-ganho_do_par                                       10           9.999               10
-parcela_causa_comum                                 1          0.9999                1
+F_unidade_unica                             7.996e-06       2.473e-05        3.514e-08
+F_par                                       7.997e-07       2.473e-06        3.514e-09
+ganho_do_par                                    9.999           9.998               10
+parcela_causa_comum                            0.9999          0.9998                1
 F_motor_com_par                              0.000124        0.000124            2e-06
-F_motor_sem_este_par                        0.0001248       0.0001305         2.02e-06
-aumento_sem_este_par_pct                       0.6136           5.216                1
-F_motor_sem_nenhum_par                      0.0001312       0.0001312         2.02e-06
+F_motor_sem_este_par                        0.0001312       0.0001462        2.032e-06
+aumento_sem_este_par_pct                        5.803           17.94            1.581
+F_motor_sem_nenhum_par                      0.0001534       0.0001534        2.032e-06
 ```
 
 ### Bimotor x monomotor
@@ -196,15 +296,15 @@ F_motor_sem_nenhum_par                      0.0001312       0.0001312         2.
         motor                                              parametro  valor_min  valor_max    F_min     F_max  F_nominal  variacao_relativa
 0      pistao                           taxa total do motor (/1e5 h)         10        100   0.0001 0.0009995   0.000124              9.996
 1      pistao                                         beta dos pares       0.01        0.3 0.000124  0.000124   0.000124                  1
-2      pistao  taxa da unidade: Bombas de combustível (par) (/1e5 h)    0.04606     0.1438 0.000124  0.000124   0.000124                  1
-3      pistao               taxa da unidade: Magnetos (par) (/1e5 h)      0.583     0.8786 0.000124  0.000124   0.000124                  1
+2      pistao  taxa da unidade: Bombas de combustível (par) (/1e5 h)     0.6137      1.029 0.000124  0.000124   0.000124                  1
+3      pistao               taxa da unidade: Magnetos (par) (/1e5 h)      2.097      2.908 0.000124  0.000124   0.000124                  1
 4  turboelice                           taxa total do motor (/1e5 h)       0.15          1  1.5e-06     1e-05    1.5e-06              6.667
 5    turbofan                           taxa total do motor (/1e5 h)        0.1          2    1e-06     2e-05      2e-06                 20
 6    turbofan                                         beta dos pares       0.01        0.3    2e-06     2e-06      2e-06                  1
-7    turbofan              taxa da unidade: FADEC A/B (par) (/1e5 h)  0.0002361    0.01076    2e-06     2e-06      2e-06                  1
+7    turbofan              taxa da unidade: FADEC A/B (par) (/1e5 h)    0.00288    0.00425    2e-06     2e-06      2e-06                  1
 ```
 
-## 04_bayes_weibull.py
+## 05_bayes_weibull.py
 
 > Gama-Poisson das taxas: exposicao_horas não informada em parametros.yaml - pulada (o NTSB não traz horas voadas da frota).
 

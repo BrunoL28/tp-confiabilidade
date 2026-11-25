@@ -106,12 +106,19 @@ def ler_config():
     return (pd.read_csv(CONFIG / "blocos_rbd.csv"), pd.read_csv(CONFIG / "taxas_literatura.csv").set_index("motor"))
 
 
-def carregar_contagens():
-    """Falhas por bloco do NTSB (etapa 2). Vazio se a etapa 2 ainda não rodou."""
-    arq = PROC / "contagens_ntsb.csv"
+FONTES = {"ntsb": "etapa 2", "sdrs": "etapa 3"}
+
+
+def carregar_contagens(fonte=None):
+    """Registros por bloco da fonte escolhida (padrão: fonte_fracoes em parametros.yaml): ntsb (etapa 2,
+    contagens_ntsb.csv) ou sdrs (etapa 3, contagens_sdrs.csv). Vazio se a etapa ainda não rodou."""
+    fonte = parametros()["fonte_fracoes"] if fonte is None else fonte
+    if fonte not in FONTES:
+        raise ValueError(f"fonte_fracoes = {fonte!r}; use uma de {list(FONTES)}")
+    arq = PROC / f"contagens_{fonte}.csv"
     if not arq.exists():
         return pd.DataFrame(columns=["motor", "bloco", "n", "fonte"])
-    return pd.read_csv(arq).assign(fonte="ntsb")
+    return pd.read_csv(arq).assign(fonte=fonte)
 
 
 def fracoes_serie(motor, blocos=None, contagens=None):
@@ -157,9 +164,10 @@ def taxa_unidade_medida(motor, grupo, taxa_total, nivel, blocos, contagens):
 
 
 def construir(motor, taxa_total=None, beta=None, taxa_unidade=None, fracoes=None, calibrar=None,
-              nivel_taxa="nom", nivel_unidade="nom"):
+              nivel_taxa="nom", nivel_unidade="nom", fonte=None):
     """Monta o Motor. Argumentos omitidos usam os valores nominais da configuração.
-    taxa_total em falhas/hora; taxa_unidade = dict {grupo: taxa por hora}; fracoes = dict {bloco: fração}."""
+    taxa_total em falhas/hora; taxa_unidade = dict {grupo: taxa por hora}; fracoes = dict {bloco: fração};
+    fonte = ntsb ou sdrs, de onde vêm as contagens (padrão: fonte_fracoes)."""
     par = parametros()
     blocos, lit = ler_config()
     if taxa_total is None:
@@ -167,7 +175,7 @@ def construir(motor, taxa_total=None, beta=None, taxa_unidade=None, fracoes=None
     beta = par["beta"]["nom"] if beta is None else beta
     calibrar = par["calibrar_total"] if calibrar is None else calibrar
 
-    contagens = carregar_contagens()
+    contagens = carregar_contagens(fonte)
     b = blocos[blocos["motor"] == motor]
     pares = []
     for grupo, g in b[b["estrutura"] == "paralelo"].groupby("grupo", sort=False):

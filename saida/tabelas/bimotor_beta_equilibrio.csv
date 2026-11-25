@@ -1,7 +1,7 @@
 dois_pistoes_contra,nivel_lambda_turbina,lambda_turbina_1e5h,beta_equilibrio
 1 Turboélice,min,0.15,0.011975741221849738
 1 Turboélice,nom,0.15,0.011975741221849738
-1 Turboélice,max,0.9999999999999998,0.08054034288910349
+1 Turboélice,max,1.0,0.08054034288910351
 1 Turbofan,min,0.1,0.007942493055890018
 1 Turbofan,nom,0.2,0.016008985354441257
 1 Turbofan,max,2.0,0.16120308770165456

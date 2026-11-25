@@ -21,5 +21,14 @@ eventos_combustivel:
   194: Wrong fuel
 # Construção amadora (homebuilt): motores não certificados (Rotax, Jabiru, conversões), fora das taxas da literatura
 excluir_construcao_amadora: true
+# De onde vêm as frações n_i/N dos blocos em série e a taxa das unidades redundantes (λ_i = λ_total × n_i/N):
+#   sdrs -> relatos de dificuldade em serviço da FAA (etapa 3), por código JASC
+#   ntsb -> achados das investigações de falha de motor (etapa 2)
+# A outra fonte sai lado a lado em fracoes_ntsb_vs_sdrs.csv. A taxa total continua vindo da literatura.
+fonte_fracoes: sdrs
+# SDRS (etapa 3)
+sdrs:
+  ano_inicio: 2008                         # mesmo período do NTSB (avall, 2008 em diante)
+  excluir_modelos: "^(R22|R44|R66|47G|UH12)"   # helicópteros (Robinson, Bell 47, Hiller) que usam o O-540: o NTSB só usa aviões
 # Gama-Poisson (taxas absolutas): só roda se houver exposição em horas de voo. O NTSB não traz horas voadas da frota.
 exposicao_horas: {pistao: null, turboelice: null, turbofan: null}

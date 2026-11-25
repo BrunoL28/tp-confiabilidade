@@ -1,4 +1,5 @@
 codigo,descricao,pistao,turboelice,turbofan
+2822,Bomba de combustível da célula (bomba elétrica auxiliar do pistão; só no SDRS: o NTSB só usa os achados de hélice e motopropulsor),bombas,,
 61,Sistema de hélice (conjunto; pás; cubo; controle; governador; embandeiramento),helice_governador,helice_governador,
 7111,Flapes de arrefecimento da carenagem (pistão),arrefecimento,,
 7112,Defletores de ar do motor (pistão),arrefecimento,,
@@ -15,7 +16,7 @@ codigo,descricao,pistao,turboelice,turbofan
 732,Controle de combustível (FCU; carburador; divisor),carburador_injecao,combustivel_fcu,combustivel
 7321,Controle eletrônico de combustível (no turbofan: ECU/FADEC),,combustivel_fcu,fadec
 74,Ignição (magnetos; cablagem; velas; chaves),magnetos,,
-7532,Válvula de sangria do compressor,,compressor,compressores
+753,Controle de ar do compressor (sangria; VSV/VBV),,compressor,compressores
 79,Óleo do motor (instalação na célula),lubrificacao,lubrificacao,lubrificacao
 81,Turbocompressor (pistão),admissao,,
 83,Caixa de acessórios,,lubrificacao,caixa_acessorios

@@ -1,0 +1,4 @@
+motor,arquivo,relatos,duplicados,antes_de_ano_inicio,helicopteros,analisados,com_bloco,genericos,fora_do_modelo,ano_min,ano_max,maior_operador,parcela_maior_operador
+pistao,pistao_lycoming540.csv,2746,0,252,1026,1468,770,58,640,2008,2025,YAXA,0.02987012987012987
+turboelice,turboelice_pt6a34.csv,269,0,14,0,255,77,46,132,2008,2025,AXSA,0.025974025974025976
+turbofan,turbofan_cfm56_7.csv,6855,0,80,0,6775,3093,807,2875,2008,2025,ASAA,0.7636598771419334

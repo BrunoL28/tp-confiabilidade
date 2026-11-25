@@ -1,62 +1,136 @@
 % Apresentação do projeto (10 min + 5 min de arguição). Compilar com pdfLaTeX.
-\documentclass[aspectratio=169,10pt]{beamer}
+% Estilo com a identidade visual da IEEE (azul 00629B, barra de título e rodapé).
+\documentclass[aspectratio=169,11pt]{beamer}
+
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazil]{babel}
 \usepackage{lmodern}
 \usepackage{booktabs}
-\usepackage{array}
 \usepackage{amsmath}
 \usepackage{siunitx}
 \sisetup{output-decimal-marker={,}, group-separator={\,}, group-minimum-digits=4, exponent-product=\times}
 \usepackage{tikz}
 \usetikzlibrary{positioning,calc,arrows.meta}
-\usetheme{default}
-\usecolortheme{beaver}
-\setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{footline}[frame number]
 
-% Cores dos três motores (gráficos) e da ênfase, que segue o vermelho do tema beaver.
+% ---------------- Estilo (cores da identidade IEEE) ----------------
+\definecolor{ieeeblue}{HTML}{00629B}
+\definecolor{ieeedark}{HTML}{002855}
+\definecolor{cinza}{HTML}{52514E}
 \definecolor{pistao}{HTML}{2A78D6}
 \definecolor{turboelice}{HTML}{EB6834}
 \definecolor{turbofan}{HTML}{1BAF7A}
-\colorlet{ieeeblue}{darkred}
-\colorlet{cinza}{black!60}
-\newcommand{\destaque}[1]{\alert{\textbf{#1}}}
+\definecolor{bom}{HTML}{1BAF7A}
+\definecolor{ruim}{HTML}{C0392B}
+
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{frametitle}{fg=white,bg=ieeeblue}
+\setbeamercolor{title}{fg=ieeedark}
+\setbeamercolor{structure}{fg=ieeeblue}
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{alerted text}{fg=ieeeblue}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamertemplate{itemize items}[square]
+\setbeamertemplate{bibliography item}[text]
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=8.5mm,dp=3mm,leftskip=6mm]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}}
+\setbeamertemplate{footline}{%
+  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=4mm,dp=1.5mm,leftskip=6mm,rightskip=6mm]{}%
+    \color{cinza}\tiny Confiabilidade de motores aeronáuticos \textbar{} Engenharia de Sistemas, UFMG%
+    \hfill\insertframenumber\,/\,\inserttotalframenumber
+  \end{beamercolorbox}}}
+\setlength{\leftmargini}{1.2em}
+\newcommand{\destaque}[1]{{\color{ieeeblue}\bfseries #1}}
 \newcommand{\pcmh}{por $10^5$~h}
 
-\title{Confiabilidade de motores aeronáuticos a pistão, turboélice e turbofan}
-\subtitle{Diagramas de blocos, redundância e dados do NTSB}
+% Caixas usadas nas ilustrações
+\tikzset{
+  caixa/.style={draw=ieeeblue, fill=ieeeblue!7, rounded corners=2pt, align=center, font=\footnotesize, inner sep=3pt},
+  caixab/.style={draw=bom, fill=bom!10, rounded corners=2pt, align=center, font=\footnotesize, inner sep=3pt},
+  caixar/.style={draw=ruim, fill=ruim!8, rounded corners=2pt, align=center, font=\footnotesize, inner sep=3pt},
+  bloco/.style={draw, fill=white, minimum width=11mm, minimum height=6mm, font=\scriptsize, align=center},
+  seta/.style={-{Stealth[length=2mm]}, line width=0.6pt},
+}
+
+\title{Análise Comparativa da Confiabilidade de Motores Aeronáuticos a Pistão, Turboélice e Turbofan}
 \author{Ana Amantea Leal Marques Afonso \and Bruno Lima Soares \and Eduarda Amaral de Oliveira
   \and Mariana Pinho Barroso Sousa \and Victor Almeida Morais}
-\institute{Confiabilidade de Sistemas, Engenharia de Sistemas/UFMG, 2026/2}
-\date{2026}
+\institute{Confiabilidade de Sistemas \textbar{} Engenharia de Sistemas, Universidade Federal de Minas Gerais}
+\date{2026/2}
 
 \begin{document}
 
 % ======================= Pessoa 1 =======================
-\begin{frame}
-\titlepage
+\begin{frame}[plain]
+  \titlepage
 \end{frame}
 
-\begin{frame}{Motivação e objetivos}
+\begin{frame}{O problema: e se o único motor parar?}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-      \textbf{O problema}
       \begin{itemize}
-        \item Em um monomotor, a falha do motor em voo elimina toda a propulsão
-        \item Literatura: pistão com \destaque{10 a 100} falhas \pcmh; turbinas abaixo de \destaque{1}
-        \item Mas é uma \emph{taxa única} para o motor inteiro: não diz onde estão as falhas nem se a redundância compensa
+        \item Num avião \textbf{monomotor}, não há motor reserva: se ele para, o avião vira um planador
+        \item A literatura dá uma taxa de falha para o \emph{motor inteiro}~[1,~2,~3]:
+          \begin{itemize}
+            \item pistão: \destaque{cerca de 12} falhas a cada 100 mil horas
+            \item turbinas: \destaque{menos de 1}
+          \end{itemize}
+        \item Mas essa taxa única \textbf{não diz}:
+          \begin{itemize}
+            \item \emph{qual peça} falha
+            \item se \emph{duplicar peças} ou \emph{usar dois motores} compensa
+          \end{itemize}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \textbf{Objetivo:} comparar a confiabilidade dos três tipos de motor
+      \vspace{1mm}
+      \begin{enumerate}\small
+        \item Desenhar cada motor como um sistema de blocos
+        \item Calcular taxa de falha, MTBF e confiabilidade
+        \item Medir o efeito das peças duplicadas e de dois motores
+        \item Achar as peças que mais falham
+      \end{enumerate}
+      \vspace{1mm}
+      {\footnotesize\color{cinza} Lycoming O-540 (pistão) \textbar{} PT6A-34 (turboélice) \textbar{} CFM56-7B (turbofan, Boeing 737)\par}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Quatro conceitos para entender o resto}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \small
+      \begin{itemize}
+        \item \textbf{Taxa de falha $\lambda$}: quantas falhas por hora de voo.
+          Pistão: 12,4 \pcmh{} $\Rightarrow$ numa frota que voa 100 mil horas, \textasciitilde12 falhas
+        \item \textbf{Confiabilidade $R(t)$}: chance de \emph{não} falhar até $t$. \quad $F(t)=1-R(t)$: chance de falhar
+        \item \textbf{MTBF}: horas de voo, em média, entre duas falhas, somando a frota toda.
+          {\color{ruim}Não} é a vida útil de um motor
+        \item \textbf{Diagrama de blocos (RBD)}: o motor como um circuito de peças
       \end{itemize}
     \end{column}
     \begin{column}{0.47\textwidth}
-      \textbf{Objetivos}
-      \begin{enumerate}
-        \item Representar cada motor em um diagrama de blocos de confiabilidade (RBD)
-        \item Estimar $\lambda$, MTBF e $R(t)$
-        \item Avaliar redundâncias: magnetos, FADEC de dois canais e \emph{dois motores}
-        \item Identificar os subsistemas mais críticos
-      \end{enumerate}
+      \centering
+      \begin{tikzpicture}[node distance=3mm]
+        \node[font=\footnotesize\bfseries, anchor=west] at (0,0.75) {Em série: qualquer uma derruba o motor};
+        \node[bloco] (s1) at (0.8,0) {peça A};
+        \node[bloco, right=of s1] (s2) {peça B};
+        \node[bloco, right=of s2] (s3) {peça C};
+        \draw (s1) -- (s2) -- (s3);
+        \node[font=\scriptsize\color{cinza}, anchor=west] at (0,-0.6) {como lâmpadas de Natal em série: queimou uma, apaga tudo};
+        \node[font=\footnotesize\bfseries, anchor=west] at (0,-1.45) {Em paralelo (par): só para se as duas falharem};
+        \node[bloco] (p1) at (2.3,-2.05) {magneto 1};
+        \node[bloco] (p2) at (2.3,-2.85) {magneto 2};
+        \coordinate (e) at (1.0,-2.45); \coordinate (d) at (3.6,-2.45);
+        \draw (0.4,-2.45) -- (e) |- (p1); \draw (e) |- (p2);
+        \draw (p1) -| (d); \draw (p2) -| (d); \draw (d) -- (4.2,-2.45);
+        \node[font=\scriptsize\color{cinza}, anchor=west, align=left] at (0,-3.55) {mas uma \emph{causa comum} (ex.: combustível sujo)\\pode derrubar as duas juntas: fração $\beta$};
+      \end{tikzpicture}
     \end{column}
   \end{columns}
 \end{frame}
@@ -67,102 +141,91 @@
       \centering
       \begin{tikzpicture}[
         nivel/.style={draw=ieeeblue, fill=ieeeblue!8, rounded corners=2pt, text width=36mm, minimum height=8mm, align=center, font=\footnotesize},
-        nota/.style={font=\scriptsize\color{cinza}, align=center},
         >=stealth, line width=0.5pt]
         \node[nivel] (a) at (0,0) {\textbf{Aeronave}\\[-0.5mm]{\scriptsize um ou dois motores?}};
-        \node[nivel] (m) at (0,-1.25) {\textbf{Motor}\\[-0.5mm]{\scriptsize arquitetura em RBD}};
-        \node[nivel] (s) at (0,-2.5) {\textbf{Subsistemas}\\[-0.5mm]{\scriptsize série e pares redundantes}};
+        \node[nivel] (m) at (0,-1.25) {\textbf{Motor}\\[-0.5mm]{\scriptsize arquitetura em blocos}};
+        \node[nivel] (s) at (0,-2.5) {\textbf{Subsistemas}\\[-0.5mm]{\scriptsize série e pares}};
         \node[nivel] (c) at (0,-3.75) {\textbf{Componentes}\\[-0.5mm]{\scriptsize falhas em operação}};
         \draw[->] (a) -- (m); \draw[->] (m) -- (s); \draw[->] (s) -- (c);
-        \draw[->, ieeeblue, line width=0.8pt] ([xshift=2mm]c.south east) -- node[midway, sloped, below, font=\scriptsize] {integração: a confiabilidade emerge} ([xshift=2mm]a.north east);
+        \draw[->, ieeeblue, line width=0.8pt] ([xshift=2mm]c.south east) -- node[midway, sloped, below, font=\scriptsize] {integração} ([xshift=2mm]a.north east);
         \draw[->, cinza] ([xshift=-2mm]a.north west) -- node[midway, sloped, below, font=\scriptsize] {decomposição} ([xshift=-2mm]c.south west);
       \end{tikzpicture}
     \end{column}
     \begin{column}{0.56\textwidth}
       \small
       \begin{itemize}
-        \item \textbf{Fronteira e requisito}: o evento de falha é não entregar a potência exigida; tanques e erro do piloto ficam fora do sistema
-        \item \textbf{Confiabilidade é propriedade emergente}: depende de como os subsistemas se arranjam (série $\times$ paralelo), não só de cada peça
-        \item \textbf{Trade-off de arquitetura}: redundância compensa uma tecnologia pior? Depende da causa comum entre as partes ($\beta$)
-        \item \textbf{Ciclo de vida}: dados de operação e manutenção voltam para o projeto e apontam onde intervir
+        \item \textbf{Fronteira}: falha = o motor não entrega a potência do voo. Tanques e erro do piloto ficam fora
+        \item \textbf{Propriedade emergente}: a confiabilidade depende de \emph{como} as peças se arranjam, não só de cada peça
+        \item \textbf{Trade-off}: duplicar compensa uma tecnologia pior? Depende da causa comum $\beta$
+        \item \textbf{Ciclo de vida}: dados de operação e manutenção apontam onde o projeto deve agir
       \end{itemize}
     \end{column}
   \end{columns}
-\end{frame}
-
-\begin{frame}{O que a literatura já oferece}
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \textbf{Técnicas}
-      \begin{itemize}
-        \item FMEA, FTA e RBD em propulsão, com pouca informação de campo (NASA, 2000)
-        \item RBD em série de um turboeixo a partir de registros de campo (Samuel \emph{et al.}, 2006)
-        \item Fator $\beta$ para causa comum (Ebeling, 1997)
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \textbf{Dados}
-      \begin{itemize}
-        \item ATSB: taxas medidas para motores a pistão
-        \item Turbinas: em geral \emph{limites} regulatórios (ETOPS, SET-IMC), que dizem quanto o motor pode falhar, não quanto falha
-        \item NTSB: achados por componente e horas do motor, mas \emph{sem horas voadas da frota}
-      \end{itemize}
-    \end{column}
-  \end{columns}
-  \vspace{1mm}
-  \begin{center}
-    \fcolorbox{ieeeblue}{white}{\parbox{0.85\textwidth}{\centering\small Lacuna: nenhum estudo compara as três tecnologias dentro do mesmo modelo.}}
-  \end{center}
 \end{frame}
 
 % ======================= Pessoa 2 =======================
-\begin{frame}{Sistema estudado: três motores, três RBD}
+\begin{frame}{O sistema: três motores, três diagramas}
   \centering
-  {\small Lycoming O-540 (pistão) \quad\textbar\quad PT6A-34 (turboélice) \quad\textbar\quad CFM56-7B (turbofan)\par}
-  \vspace{1.5mm}
   \makebox[\linewidth]{\resizebox{0.97\paperwidth}{!}{\input{figures/rbd}}}
-  \vspace{1mm}
-  {\footnotesize\raggedright
-  Falha = perda de potência que obriga a desligar o motor. Bloco em série: sua falha derruba o motor. Blocos empilhados: par redundante, que só falha se as duas unidades falharem.\par}
+  \vspace{2mm}
+  {\small\raggedright
+  \begin{itemize}
+    \item Pistão: \destaque{dois pares} (bombas de combustível e magnetos da ignição); o resto em série
+    \item Turboélice: tudo em série \quad\textbar\quad Turbofan: o computador do motor (FADEC) tem \destaque{dois canais}
+  \end{itemize}\par}
 \end{frame}
 
-\begin{frame}{Método: taxa da literatura, frações medidas}
+\begin{frame}{Método: de onde vem cada número}
+  \centering
+  \begin{tikzpicture}[node distance=4mm and 7mm]
+    \node[caixa, text width=35mm] (lit) {\textbf{1. Literatura}\\quanto o motor\\falha \emph{no total}\\{\scriptsize pistão: 12,4 \pcmh}};
+    \node[caixa, text width=35mm, right=of lit] (sdrs) {\textbf{2. SDRS (FAA)}\\divide o total\\\emph{entre as peças}\\{\scriptsize relatos de manutenção}};
+    \node[caixa, text width=35mm, right=of sdrs] (rbd) {\textbf{3. Diagrama de blocos}\\junta as peças e\\calcula $R(t)$, MTBF\\e o efeito dos pares};
+    \node[caixa, text width=35mm, below=9mm of sdrs] (ntsb) {\textbf{4. NTSB}\\falhas reais: gravidade\\e idade do motor\\{\scriptsize investigações de acidentes}};
+    \draw[seta] (lit) -- (sdrs); \draw[seta] (sdrs) -- (rbd);
+    \draw[seta, dashed] (ntsb.east) -| node[pos=0.25, below, font=\scriptsize] {confere o modelo} (rbd.south);
+  \end{tikzpicture}
+  \vspace{3mm}
+
+  \begin{tikzpicture}
+    \node[font=\footnotesize\bfseries, anchor=west] at (0,0.55) {Exemplo: dividindo os 12,4 do pistão pela proporção de relatos};
+    \fill[pistao!90] (0,0) rectangle (5.0,0.4);   \node[font=\scriptsize, white] at (2.5,0.2) {núcleo 50\% = 6,2};
+    \fill[pistao!65] (5.0,0) rectangle (6.5,0.4); \node[font=\scriptsize] at (5.75,0.2) {admissão};
+    \fill[pistao!50] (6.5,0) rectangle (7.7,0.4); \node[font=\scriptsize] at (7.1,0.2) {carb.};
+    \fill[pistao!35] (7.7,0) rectangle (8.8,0.4); \node[font=\scriptsize] at (8.25,0.2) {hélice};
+    \fill[pistao!22] (8.8,0) rectangle (9.8,0.4); \node[font=\scriptsize] at (9.3,0.2) {óleo};
+    \fill[pistao!10] (9.8,0) rectangle (10.0,0.4);
+    \node[font=\scriptsize\color{cinza}, anchor=west] at (0,-0.3) {$\lambda_{\text{peça}} = \lambda_{\text{motor}}\times\dfrac{\text{relatos da peça}}{\text{relatos de todas as peças}}$ \quad (a soma continua 12,4)};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{As duas bases de dados veem coisas diferentes}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \small
-      \textbf{Modelo} (taxa constante)
-      \begin{itemize}
-        \item Série: $R_s = \prod_i e^{-\lambda_i t}$
-        \item Par com causa comum $\beta$:
-          \[ R_p = \left[1-\left(1-e^{-(1-\beta)\lambda_u t}\right)^2\right] e^{-\beta\lambda_u t} \]
-        \item Distribuição da taxa: $\lambda_i = \lambda_s\, n_i/N_s$
-        \item Unidade do par: $\lambda_u = n_p\lambda/(2N_s)$
-        \item Taxa publicada preservada em um voo de 1~h
-      \end{itemize}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{NTSB~[4] \;--\; ``o que derruba o avião''}
+        \small
+        \begin{itemize}
+          \item Investigações de acidentes nos EUA, 2008--2026
+          \item 18\,735 aviões; \destaque{2899 falhas de motor}
+          \item Diz a \emph{gravidade} e as \emph{horas do motor}
+          \item Quase só acidentes: falha que termina bem não entra
+        \end{itemize}
+      \end{block}
     \end{column}
-    \begin{column}{0.45\textwidth}
-      \small
-      \textbf{Dados}
-      \begin{center}
-      \begin{tabular}{@{}lrr@{}}
-        \toprule
-        NTSB, 2008--2026 & Falhas & Registros \\
-        \midrule
-        Pistão & 2562 & 994 \\
-        Turboélice & 176 & 69 \\
-        Turbofan & 161 & 46 \\
-        \midrule
-        Total & 2899 & \destaque{1109} \\
-        \bottomrule
-      \end{tabular}
-      \end{center}
-      \begin{itemize}
-        \item Falha: perda de potência na sequência de eventos; pane seca à parte
-        \item Bloco: código ATA do achado (ex.: 8530 cilindros, 7414 magneto)
-        \item $\lambda$ nominal: 12,4; 0,15; 0,20 \pcmh
-      \end{itemize}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{SDRS~[5] \;--\; ``o que dá trabalho na oficina''}
+        \small
+        \begin{itemize}
+          \item Relatos de oficinas e empresas à FAA, 2008--2025
+          \item \destaque{3940 relatos} com a peça identificada
+          \item Vê achados de inspeção e falhas que a peça reserva segurou
+          \item Usado para \emph{dividir a taxa} entre as peças
+        \end{itemize}
+      \end{block}
     \end{column}
   \end{columns}
+  \vspace{2mm}
+  {\small As duas usam o mesmo código de peça (capítulos ATA: 8530 = cilindros, 7414 = magneto, 7250 = turbinas). Ficaram fora: construção amadora, helicópteros, pane seca e registros que não dizem a peça.\par}
 \end{frame}
 
 % ======================= Pessoa 3 =======================
@@ -170,129 +233,265 @@
   \begin{columns}[c]
     \begin{column}{0.53\textwidth}
       \includegraphics[width=\textwidth]{figures/fig_prob_falha_tempo}
+      {\scriptsize\color{cinza} Linha: taxa nominal; faixa: menor a maior taxa publicada}
     \end{column}
     \begin{column}{0.45\textwidth}
       \small
       \begin{tabular}{@{}lcc@{}}
         \toprule
-        Motor & $F(1\,\mathrm{h})$ & $R(1000\,\mathrm{h})$ \\
+        Num voo de 1~h & falha em & MTBF \\
         \midrule
-        Pistão & \num{1.24e-4} & 0,883 \\
-        Turboélice & \num{1.5e-6} & 0,9985 \\
-        Turbofan & \num{2.0e-6} & 0,9980 \\
+        Pistão & 1 a cada \destaque{8 mil} & 8 mil h \\
+        Turboélice & 1 a cada 670 mil & 670 mil h \\
+        Turbofan & 1 a cada 500 mil & 500 mil h \\
         \bottomrule
       \end{tabular}
       \vspace{2mm}
       \begin{itemize}
-        \item Em 1000~h: \destaque{12\%} de chance de falha no pistão, 0,15--0,20\% nas turbinas
-        \item No pior caso das faixas, o pistão ainda falha \destaque{5 vezes} mais
-        \item Turboélice $\times$ turbofan: faixas sobrepostas, \emph{sem ordem}
+        \item Em \textbf{1000 h} (um ano puxado): \destaque{12\%} de chance de falha no pistão, \textasciitilde0,2\% nas turbinas
+        \item Mesmo no cenário mais favorável ao pistão, ele falha \destaque{5 vezes} mais
+        \item Turboélice $\times$ turbofan: \emph{empate técnico}
       \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Resultado 2: onde as falhas se concentram}
+\begin{frame}{Resultado 2: onde estão as falhas}
   \centering
-  \resizebox{\textwidth}{!}{\begin{tikzpicture}\input{figures/pareto_slide}\end{tikzpicture}}
-  \vspace{1.5mm}
+  \includegraphics[width=0.98\textwidth]{figures/fig_pareto_blocos}
+  \vspace{1mm}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \small
       \begin{itemize}
-        \item Pistão: núcleo mecânico com \destaque{60\%}; os 5 blocos em série sem redundância somam 99\%
-        \item Magnetos duplicados: só 0,6\%
+        \item Pistão: \destaque{metade} das falhas no núcleo mecânico (cilindros, pistões, virabrequim), que \emph{não tem reserva}
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
       \small
       \begin{itemize}
-        \item Turbinas: compressores e turbinas lideram (\destaque{52\%} no turboélice, \destaque{67\%} no turbofan)
-        \item Poucos registros (69 e 45): intervalos largos
+        \item Magnetos duplicados: só \destaque{2\%} da falha do motor, porque são dois
+        \item Barras pretas: margem de erro (poucos dados no turboélice)
       \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}
 
-% ======================= Pessoa 4 =======================
-\begin{frame}{Resultado 3: redundância dentro do motor}
+\begin{frame}{NTSB $\times$ SDRS: quando as bases concordam e quando não}
   \centering
-  \begin{tabular}{@{}lrrcr@{}}
+  \footnotesize
+  \begin{tabular}{@{}llrrl@{}}
     \toprule
-    Par & Registros & $\lambda_u$ (\pcmh) & Ganho & Sem o par \\
+    Motor & Peça & NTSB & SDRS & Leitura \\
     \midrule
-    Magnetos (pistão) & 102 & 0,72 & 10$\times$ & +5,2\% \\
-    Bombas (pistão) & 12 & 0,085 & 10$\times$ & +0,6\% \\
-    FADEC A/B (turbofan) & 1 & 0,0022 & 10$\times$ & +1,0\% \\
+    Pistão & Núcleo mecânico & 60\% & 51\% & \textcolor{bom}{\textbf{concordam}}: crítico nos dois sentidos \\
+    Turbofan & Fan & 1 caso & 883 relatos & dá trabalho, mas quase nunca para o motor \\
+    Turbofan & Turbinas & 27\% & 4\% & rara na oficina, grave quando falha \\
+    Turbofan & Lubrificação & 0 & 330 relatos & vazamentos achados antes de parar \\
     \bottomrule
   \end{tabular}
-  \vspace{5mm}
-  \begin{itemize}
-    \item Ganho: $F$ de uma unidade sobre $F$ do par. Sem o par: aumento em $F(1\,\mathrm{h})$ do motor
-    \item O par reduz em cerca de \destaque{10 vezes} a chance de perder a função, e esse ganho é limitado pela causa comum: fica perto de $1/\beta$, com $\beta = 0{,}1$
-    \item Sem os dois pares, o pistão falharia \destaque{5,8\%} mais em 1~h
-    \item O mesmo número é o risco de decolar com um magneto já em pane: +5,2\%
-    \item FADEC: um único registro no NTSB; falhas que o par tolera raramente viram acidente
-  \end{itemize}
+  \vspace{4mm}
+
+  \begin{tikzpicture}
+    \node[caixa, text width=60mm] (a) {\textbf{Fan do turbofan}: lemos 101 relatos;\\\destaque{94} foram achados em inspeção no solo\\(calços e revestimentos gastos)};
+    \node[caixa, text width=55mm, right=8mm of a] (b) {\destaque{76\%} dos relatos do turbofan\\vêm de \emph{uma única} empresa aérea};
+  \end{tikzpicture}
+  \vspace{2mm}
+
+  {\small O resultado mais \textbf{robusto}: o núcleo do pistão. O Pareto do turbofan mostra mais a \emph{manutenção} que as falhas em voo.\par}
 \end{frame}
 
-\begin{frame}{Resultado 4: dois pistões $\times$ uma turbina}
+% ======================= Pessoa 4 =======================
+\begin{frame}{Resultado 3: o que a peça reserva esconde}
   \begin{columns}[c]
-    \begin{column}{0.53\textwidth}
-      \includegraphics[width=\textwidth]{figures/fig_bimotor}
+    \begin{column}{0.55\textwidth}
+      \centering
+      \begin{tikzpicture}[node distance=4mm]
+        \node[caixar, text width=34mm] (f) {Magneto 1 \textbf{falha}};
+        \node[caixab, text width=34mm, below=of f] (s) {Magneto 2 \textbf{segura} o motor};
+        \node[caixa, text width=26mm, below left=6mm and -10mm of s] (p) {Avião pousa normal};
+        \node[caixa, text width=26mm, below right=6mm and -10mm of s] (m) {Mecânico troca o magneto};
+        \node[caixar, text width=26mm, below=of p] (n) {\textbf{NTSB}: nada registrado};
+        \node[caixab, text width=26mm, below=of m] (r) {\textbf{SDRS}: relato enviado};
+        \draw[seta] (f) -- (s); \draw[seta] (s) -- (p); \draw[seta] (s) -- (m);
+        \draw[seta] (p) -- (n); \draw[seta] (m) -- (r);
+      \end{tikzpicture}
     \end{column}
-    \begin{column}{0.45\textwidth}
+    \begin{column}{0.43\textwidth}
+      \small
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        Cada magneto & relatos & falhas \pcmh \\
+        \midrule
+        NTSB & 102 & 0,72 \\
+        SDRS & 201 & \destaque{2,47} \\
+        \bottomrule
+      \end{tabular}
+      \vspace{3mm}
+      \begin{itemize}
+        \item O SDRS vê \destaque{3,4 vezes} mais falhas de magneto: as que a reserva absorveu
+        \item Por isso usamos o SDRS para dividir a taxa: a análise de redundância fica mais realista
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Resultado 3: quanto as peças duplicadas ajudam}
+  \centering
+  \begin{tabular}{@{}lrcr@{}}
+    \toprule
+    Par & cada unidade (\pcmh) & ganho do par & motor com 1 unidade \\
+    \midrule
+    Magnetos (pistão) & 2,47 & 10$\times$ & \destaque{+18\%} \\
+    Bombas (pistão) & 0,80 & 10$\times$ & +5,8\% \\
+    FADEC (turbofan) & 0,0035 & 10$\times$ & +1,6\% \\
+    \bottomrule
+  \end{tabular}
+  \\[1mm]{\scriptsize\color{cinza} Ganho: quantas vezes o par falha menos que uma unidade sozinha.}
+  \vspace{3mm}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \small
+      \textbf{Por que só 10 vezes?}
+      \begin{itemize}
+        \item As duas unidades falharem \emph{por acaso} no mesmo voo é raríssimo
+        \item Quase toda falha do par vem da \textbf{causa comum} (10\% das falhas, $\beta=0{,}1$)
+        \item Ganho $\approx 1/\beta = 10$
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \small
+      \textbf{Leitura}
+      \begin{itemize}
+        \item Sem os dois pares, o pistão falharia \destaque{24\%} mais
+        \item A duplicação protege bem a ignição, mas o núcleo, com metade das falhas, \emph{não tem reserva}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Resultado 4: dois motores a pistão valem uma turbina?}
+  \begin{columns}[c]
+    \begin{column}{0.52\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig_bimotor}
+      {\scriptsize\color{cinza} Chance de perder \emph{os dois} motores num voo de 1~h}
+    \end{column}
+    \begin{column}{0.46\textwidth}
       \small
       \begin{itemize}
-        \item Falhas independentes: perda total em \num{1.5e-8} por hora
-        \item Mas a causa comum entre motores (combustível, manutenção, gelo) domina
-        \item Empate em \destaque{$\beta = 0{,}012$} contra o turboélice e \destaque{$0{,}016$} contra o turbofan
-        \item A faixa usual de $\beta$ vai de 0,01 a 0,3
-        \item O bimotor ainda \emph{dobra} a chance de alguma falha de motor no voo
+        \item Se os motores falhassem \emph{independentes}: perder os dois seria \num{1.5e-8} por hora, \destaque{100 vezes melhor} que uma turbina
+        \item Mas há \textbf{causas comuns}: combustível sujo, mesmo mecânico, gelo
+        \item Perder os dois $\approx \beta \times \lambda_{\text{pistão}}$
       \end{itemize}
+      \vspace{1mm}
+      \begin{tikzpicture}
+        \node[caixa, text width=58mm] {Empate quando \destaque{1,2 a 1,6} em cada \textbf{100} falhas atingem os dois motores juntos.\\A literatura usa 1 a 30: na prática, \textbf{a turbina ganha}};
+      \end{tikzpicture}
     \end{column}
   \end{columns}
 \end{frame}
 
 % ======================= Pessoa 5 =======================
-\begin{frame}{Resultado 5: o que dizem as ocorrências do NTSB}
+\begin{frame}{Resultado 5: o que acontece quando o motor falha}
   \begin{columns}[c]
-    \begin{column}{0.55\textwidth}
+    \begin{column}{0.52\textwidth}
       \includegraphics[width=\textwidth]{figures/fig_ntsb_prob_fatal}
+      {\scriptsize\color{cinza} Falhas de motor com vítima fatal no NTSB, 2008--2026}
     \end{column}
-    \begin{column}{0.43\textwidth}
+    \begin{column}{0.46\textwidth}
       \small
       \begin{itemize}
-        \item Falhas de motor com vítima fatal, 2008--2026
-        \item Pistão: \destaque{43\%} nos multimotores contra 11\% nos monomotores
-        \item Turboélice monomotor: \destaque{2,8\%}, perto do turbofan (2,9\%)
-        \item Falha de um motor no multimotor que chega ao NTSB é das mais graves: perda de controle com tração assimétrica
-        \item Ressalva: no multimotor, a falha que termina em pouso normal quase não entra na base
+        \item Pistão: \destaque{11\%} no monomotor, \destaque{43\%} no multimotor. Bimotor é mais perigoso? \textbf{Não exatamente}
       \end{itemize}
+      \begin{tikzpicture}
+        \node[caixa, text width=27mm] (m) {\textbf{Monomotor}\\o motor para\\$\Rightarrow$ pouso forçado\\$\Rightarrow$ \emph{sempre} investigado};
+        \node[caixa, text width=27mm, right=3mm of m] (b) {\textbf{Bimotor}\\pousa com o outro\\$\Rightarrow$ \emph{não entra} na base,\\salvo se der errado};
+      \end{tikzpicture}
+      \vspace{1mm}
+      \begin{itemize}
+        \item Como comparar ``todos do hospital'' com ``só os da UTI''
+        \item Quando dá errado no bimotor, costuma ser perda de controle: um motor puxa o avião para o lado
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Resultado 6: o motor envelhece?}
+  \begin{columns}[c]
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[x=1cm,y=1cm]
+        \draw[->] (0,0) -- (5.2,0) node[below left, font=\scriptsize] {horas de uso};
+        \draw[->] (0,0) -- (0,2.6) node[above right, font=\scriptsize] {risco de falha};
+        \draw[ieeeblue, line width=1.2pt] (0.15,2.2) .. controls (0.6,0.9) and (0.9,0.8) .. (1.5,0.8) -- (3.6,0.8) .. controls (4.2,0.8) and (4.6,1.2) .. (5.0,2.2);
+        \node[font=\scriptsize, align=center] at (0.75,-0.35) {defeitos\\iniciais};
+        \node[font=\scriptsize, align=center] at (2.55,-0.35) {vida útil:\\risco constante};
+        \node[font=\scriptsize, align=center] at (4.5,-0.35) {desgaste};
+        \node[font=\scriptsize\color{ieeeblue}] at (0.75,1.9) {$k<1$};
+        \node[font=\scriptsize\color{ieeeblue}] at (2.55,1.1) {$k=1$};
+        \node[font=\scriptsize\color{ieeeblue}] at (4.4,1.9) {$k>1$};
+      \end{tikzpicture}
+      \vspace{1mm}
+      {\scriptsize\color{cinza}Curva da banheira. O modelo supõe a parte plana ($k=1$)\par}
+    \end{column}
+    \begin{column}{0.53\textwidth}
+      \small
+      \textbf{Teste caso-controle}: sem saber a idade da frota, comparamos
+      \begin{itemize}
+        \item motores que \textbf{falharam} (903)
+        \item motores de aviões acidentados \textbf{por outro motivo} (4000), que mostram a idade típica da frota
+      \end{itemize}
+      Se idade importasse, os que falharam seriam mais velhos.
+      \vspace{1mm}
+      \begin{tabular}{@{}llcl@{}}
+        \toprule
+        Pistão & & $k$ & \\
+        \midrule
+        Desde a revisão & (TSO) & \destaque{0,99} & não envelhece \\
+        Desde novo & (TSN) & 1,08 & desgaste leve \\
+        \bottomrule
+      \end{tabular}
+      \vspace{1mm}
+      {\footnotesize A revisão geral ``zera'' o motor: \textbf{a hipótese do modelo vale}\par}
     \end{column}
   \end{columns}
 \end{frame}
 
 \begin{frame}{Limitações}
   \begin{itemize}
-    \item \textbf{Frações por contagem}: supõem a mesma chance de registro para todos os blocos; o NTSB vê sobretudo acidentes (2529 das 2562 falhas no pistão)
-    \item \textbf{Poucos dados nas turbinas}: 69 e 45 registros; motores por tipo, não por modelo; 535 achados genéricos fora da contagem
-    \item \textbf{Taxa constante}: caso-controle pelo TSO dá forma 0,99 (IC de 0,94 a 1,05; 903 falhas), mas supõe que os controles tenham a idade da frota
-    \item \textbf{Sem horas voadas}: a atualização Gama--Poisson das taxas absolutas não foi possível
-    \item \textbf{Taxa do turbofan}: vem do fabricante, sem estatística independente
+    \item \textbf{Cada base tem seu viés}: o NTSB só vê falhas que viraram acidente; o SDRS mistura falhas com achados de manutenção e, no turbofan, é dominado por uma empresa
+    \item \textbf{Poucos dados no turboélice}: 77 relatos, com margens de erro largas
+    \item \textbf{Causa comum $\beta$ assumida}: por isso calculamos o ponto de empate em vez de um único valor
+    \item \textbf{Sem horas voadas da frota}: a taxa total vem da literatura, e a do turbofan é do fabricante
+    \item \textbf{Registros sem peça definida}: supomos que se dividem como os demais
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Conclusões}
   \begin{itemize}
-    \item O pistão falha \destaque{62 a 83 vezes} mais que as turbinas, e a diferença resiste a toda a faixa da literatura
-    \item As falhas do pistão estão no \destaque{núcleo mecânico}, sem redundância; é ali que manutenção e projeto rendem mais
-    \item \destaque{Redundância não compensa tecnologia}: dois pistões só superam uma turbina com $\beta$ abaixo de 1,2--1,6\%, e o NTSB confirma
-    \item Lição de sistemas: a escolha de arquitetura só se avalia com as \emph{dependências} entre as partes; ignorar a causa comum superestima o ganho da redundância
-    \item Turboélice $\times$ turbofan: os dados publicados não permitem ordenar
+    \item O pistão falha \destaque{62 a 83 vezes} mais que as turbinas, em toda a faixa da literatura
+    \item \destaque{Metade} dessas falhas está no núcleo mecânico, \emph{sem reserva}, e as duas bases concordam: é ali que manutenção e projeto rendem mais
+    \item Peças duplicadas ganham \destaque{10 vezes}, limitadas pela causa comum
+    \item \destaque{Redundância não compensa tecnologia}: dois pistões só superam uma turbina se menos de 1,2--1,6\% das falhas atingirem os dois
+    \item Lição de sistemas: avaliar uma arquitetura exige olhar as \emph{dependências} entre as partes
   \end{itemize}
-  \vspace{3mm}
-  \textbf{Próximos passos}: obter horas voadas por frota, ampliar a base das turbinas e usar remoções em campo como limite superior de $\lambda_u$.
+  \vspace{2mm}
+  {\small\textbf{Próximos passos}: horas voadas por frota, mais dados do turboélice e separar, no SDRS, falha em voo de achado de manutenção.\par}
+\end{frame}
+
+\begin{frame}{Principais referências}
+  \scriptsize
+  \begin{thebibliography}{9}
+    \bibitem{atsb2016} Australian Transport Safety Bureau, ``Engine failures and malfunctions in light aeroplanes 2009--2014,'' ATSB, Research Report AR-2013-107, 2016.
+    \bibitem{stobie2019} N. Stobie, ``Your one and only: mitigating the risk of engine failure in singles,'' \emph{Flight Safety Australia}, CASA, 2019.
+    \bibitem{cfm2012} CFM International, ``CFM56-7B engine in service with TUIfly sets new first-run world record,'' comunicado de imprensa, 2012.
+    \bibitem{ntsb} National Transportation Safety Board, ``Downloadable Aviation Datasets (avall).'' Disponível: data.ntsb.gov/avdata
+    \bibitem{sdrs} Federal Aviation Administration, ``Service Difficulty Reporting System (SDRS).'' Disponível: sdrs.faa.gov
+    \bibitem{ebeling1997} C. E. Ebeling, \emph{An Introduction to Reliability and Maintainability Engineering}. New York: McGraw-Hill, 1997.
+    \bibitem{rausand2004} M. Rausand e A. Høyland, \emph{System Reliability Theory}, 2nd ed. Hoboken, NJ: Wiley, 2004.
+    \bibitem{faa_amt} Federal Aviation Administration, \emph{Aviation Maintenance Technician Handbook -- Powerplant}, FAA-H-8083-32B, 2023.
+    \bibitem{samuel2006} M. P. Samuel, C. Mukhopadhyay e V. Shankar, ``Failure mode identification and data preparation for aeroengine reliability studies,'' IISc, Bangalore, 2006.
+  \end{thebibliography}
 \end{frame}
 
 \begin{frame}{Obrigado}
@@ -304,31 +503,31 @@
 
 % ======================= Apoio para a arguição =======================
 \appendix
-\begin{frame}{Apoio: sensibilidade, blocos sem registro e Weibull}
+\begin{frame}{Apoio: sensibilidade, números das bases e taxa constante}
   \small
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \textbf{Sensibilidade} (mínimo a máximo de cada parâmetro)
       \begin{itemize}
-        \item Taxa total: $F(1\,\mathrm{h})$ varia 10$\times$ (pistão), 6,7$\times$ (turboélice) e 20$\times$ (turbofan)
-        \item $\beta$ e $\lambda_u$: não mudam $F(1\,\mathrm{h})$, porque a taxa publicada é preservada; só redistribuem o Pareto
-      \end{itemize}
-      \textbf{Blocos sem registro}
-      \begin{itemize}
-        \item Lubrificação do turbofan e entrada de ar do turboélice: fração 0
-        \item Zero registros não é taxa zero: o limite de Jeffreys vai a 5\% e 4\%
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \textbf{Forma de Weibull} (caso-controle, monomotores)
-      \begin{itemize}
-        \item Pistão, TSO: 0,99 (0,94--1,05), $p=0{,}79$: taxa constante
-        \item Pistão, TSN: 1,08 (1,02--1,13): desgaste leve na vida do motor
-        \item Turboélice, TSO: 1,28 (0,97--1,59), só 32 falhas
+        \item Taxa total: a chance de falha em 1~h varia 10$\times$ (pistão), 6,7$\times$ (turboélice) e 20$\times$ (turbofan)
+        \item $\beta$ e taxa das unidades: não mudam a chance de falha do motor, só redistribuem entre as peças
       \end{itemize}
       \textbf{Combustível, contado à parte}
       \begin{itemize}
-        \item Pistão: 1532 ocorrências, 174 com vítima fatal
+        \item Pistão: 1532 panes (174 fatais), quase 60\% do número de falhas de motor
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Bases}
+      \begin{itemize}
+        \item NTSB: 2562 / 176 / 161 falhas (pistão / turboélice / turbofan)
+        \item SDRS: 770 / 77 / 3093 relatos com peça; 1026 de helicópteros excluídos
+      \end{itemize}
+      \textbf{Forma de Weibull} (caso-controle, monomotores)
+      \begin{itemize}
+        \item Pistão, TSO: 0,99 (IC 0,94--1,05)
+        \item Pistão, TSN: 1,08 (IC 1,02--1,13)
+        \item Turboélice, TSO: 1,28 (IC 0,97--1,59), só 32 falhas
       \end{itemize}
     \end{column}
   \end{columns}

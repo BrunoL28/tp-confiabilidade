@@ -1,4 +1,4 @@
-"""Roda as etapas 2 a 4 na ordem e grava o que cada uma imprime em saida/execucao_pipeline.md."""
+"""Roda as etapas 2 a 5 na ordem e grava o que cada uma imprime em saida/execucao_pipeline.md."""
 import subprocess
 import sys
 from datetime import datetime
@@ -6,7 +6,7 @@ from pathlib import Path
 
 SRC = Path(__file__).parent
 SAIDA = SRC.parent / "saida" / "execucao_pipeline.md"
-ETAPAS = ["02_tratar_ntsb.py", "03_analise_confiabilidade.py", "04_bayes_weibull.py"]
+ETAPAS = ["02_tratar_ntsb.py", "03_tratar_sdrs.py", "04_analise_confiabilidade.py", "05_bayes_weibull.py"]
 
 
 def para_markdown(texto):
@@ -34,7 +34,7 @@ def para_markdown(texto):
 
 
 md = [f"# Execução do pipeline\n\nGerado por `src/executar_tudo.py` em {datetime.now():%d/%m/%Y %H:%M}. "
-      "Base: NTSB (avall, 2008 a 2026).\n"]
+      "Bases: NTSB (avall, 2008 a 2026) e SDRS (FAA, 2008 a 2025).\n"]
 for etapa in ETAPAS:
     print(f"\n{'=' * 20} {etapa} {'=' * 20}", flush=True)
     r = subprocess.run([sys.executable, etapa], cwd=SRC, capture_output=True, text=True)

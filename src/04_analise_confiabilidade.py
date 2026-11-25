@@ -1,9 +1,14 @@
-"""Etapa 3 - Métricas de confiabilidade dos três motores (Seção IV da proposta).
+"""Etapa 4 - Métricas de confiabilidade dos três motores (Seção IV da proposta).
 
-    python src/03_analise_confiabilidade.py
+    python src/04_analise_confiabilidade.py
+
+A taxa total de cada motor vem da literatura; as frações dos blocos e a taxa das unidades redundantes
+vêm das contagens da fonte `fonte_fracoes` (sdrs, etapa 3, ou ntsb, etapa 2).
 
 Tabelas em saida/tabelas/:
   metricas_motores.csv       lambda, MTBF, R(1 h), R(1000 h) por tecnologia
+  lambda_blocos.csv          lambda de cada bloco (e de cada unidade dos pares), com faixa
+  fracoes_ntsb_vs_sdrs.csv   frações dos blocos e taxa das unidades nas duas fontes, lado a lado
   pareto_blocos.csv          parcela de cada subsistema na falha do motor
   redundancia_interna.csv    efeito de magnetos, bombas e FADEC duplicados
   bimotor_vs_monomotor.csv   dois motores menos confiáveis x um mais confiável
@@ -38,6 +43,7 @@ TRACO = {"pistao": "-", "turboelice": (0, (5, 2)), "turbofan": (0, (1, 1.5))}  #
 P = parametros()
 U = P["unidade_taxa"]
 BLOCOS, LIT = rbd.ler_config()
+FONTE_ROTULO = {"sdrs": "relatos de dificuldade em serviço (SDRS, FAA)", "ntsb": "achados de falha de motor (NTSB)"}
 
 
 def sem_redundancia(motor):
@@ -65,6 +71,65 @@ def metricas():
     ref = df.set_index("motor")["F_1h"]
     df["razao_para_pistao"] = (ref["pistao"] / df["F_1h"]).values
     return df
+
+
+def lambda_blocos():
+    """λ de cada bloco em série (λ_série × n_i/N) e de cada unidade dos pares, com as taxas nominais.
+    Faixa: taxa mínima da literatura com o limite inferior da fração (ou da taxa da unidade) até a
+    máxima com o limite superior, como em reparticao.py."""
+    fonte = P["fonte_fracoes"]
+    cont = rbd.carregar_contagens()
+    linhas = []
+    for m in MOTORES:
+        M = rbd.construir(m)
+        lo = rbd.construir(m, nivel_taxa="min", nivel_unidade="min")
+        hi = rbd.construir(m, nivel_taxa="max", nivel_unidade="max")
+        fr, provisorio = rbd.fracoes_serie(m, BLOCOS)
+        N = int(fr["n"].sum())
+        taxa = {b.nome: b.taxa for b in M.serie}
+        for r in fr.itertuples():
+            linhas.append(dict(motor=m, fonte="blocos_rbd.csv" if provisorio else fonte, bloco=r.bloco,
+                               rotulo=r.rotulo, estrutura="serie", n=r.n, N_serie=N, fracao=r.frac,
+                               fracao_ic_inf=r.frac_min, fracao_ic_sup=r.frac_max,
+                               lambda_1e5h=taxa[r.bloco] / U, lambda_inf_1e5h=lo.taxa_serie * r.frac_min / U,
+                               lambda_sup_1e5h=hi.taxa_serie * r.frac_max / U))
+        for p in M.pares:
+            ext = [next(q.taxa_unidade for q in X.pares if q.nome == p.nome) for X in (lo, hi)]
+            n = int(cont[(cont["motor"] == m) & (cont["bloco"] == p.nome)]["n"].sum())
+            linhas.append(dict(motor=m, fonte=fonte if p.medida else "blocos_rbd.csv", bloco=p.nome,
+                               rotulo=p.rotulo.replace("(par)", "(cada unidade)"), estrutura="par redundante",
+                               n=n, N_serie=N, fracao=np.nan, fracao_ic_inf=np.nan, fracao_ic_sup=np.nan,
+                               lambda_1e5h=p.taxa_unidade / U, lambda_inf_1e5h=ext[0] / U, lambda_sup_1e5h=ext[1] / U))
+    return pd.DataFrame(linhas)
+
+
+def fracoes_por_fonte():
+    """Fração de cada bloco em série e taxa de cada unidade redundante com as contagens do NTSB e do SDRS,
+    lado a lado. Uma fonte sem contagens (etapa não rodada) fica em branco."""
+    partes = []
+    for fonte in rbd.FONTES:
+        cont = rbd.carregar_contagens(fonte)
+        if cont.empty:
+            continue
+        for m in MOTORES:
+            fr, _ = rbd.fracoes_serie(m, BLOCOS, cont)
+            d = fr.rename(columns={"frac": "fracao", "frac_min": "ic_inf", "frac_max": "ic_sup"})
+            d["lambda_unidade_1e5h"] = np.nan
+            M = rbd.construir(m, fonte=fonte)
+            pares = pd.DataFrame([dict(bloco=p.nome, rotulo=p.rotulo,
+                                       n=int(cont[(cont["motor"] == m) & (cont["bloco"] == p.nome)]["n"].sum()),
+                                       lambda_unidade_1e5h=p.taxa_unidade / U) for p in M.pares])
+            partes.append(pd.concat([d, pares], ignore_index=True).assign(motor=m, fonte=fonte))
+    if not partes:
+        return pd.DataFrame()
+    longo = pd.concat(partes, ignore_index=True)
+    chave = ["motor", "bloco", "rotulo"]
+    valores = ["n", "fracao", "ic_inf", "ic_sup", "lambda_unidade_1e5h"]
+    largo = longo.set_index(chave + ["fonte"])[valores].unstack("fonte")
+    largo.columns = [f"{v}_{f}" for v, f in largo.columns]
+    ordem = [f"{v}_{f}" for f in rbd.FONTES for v in valores]
+    linhas = pd.MultiIndex.from_frame(longo[chave].drop_duplicates())  # ordem de blocos_rbd.csv
+    return largo.reindex(linhas)[[c for c in ordem if c in largo.columns]].reset_index()
 
 
 def pareto(t=1.0):
@@ -180,8 +245,9 @@ def salvar(fig, nome, artigo):
 
 def nota_provisorio(fig, provisorio):
     if provisorio:
-        fig.text(0.01, 0.005, "Frações por subsistema provisórias (config/blocos_rbd.csv) até a etapa 2 (NTSB) "
-                 "gerar as contagens.", fontsize=7, color=TINTA2, ha="left", va="bottom")
+        fig.text(0.01, 0.005, f"Frações por subsistema provisórias (config/blocos_rbd.csv) até a "
+                 f"{rbd.FONTES[P['fonte_fracoes']]} ({P['fonte_fracoes'].upper()}) gerar as contagens.",
+                 fontsize=7, color=TINTA2, ha="left", va="bottom")
 
 
 def fig_prob_tempo(artigo=False):
@@ -232,6 +298,8 @@ def fig_pareto(par, artigo=False):
         fig.tight_layout(pad=0.3, w_pad=0.6)
     else:
         nota_provisorio(fig, bool(par.loc[par["estrutura"] == "serie", "provisorio"].any()))  # pares: taxa assumida, não fração
+        fig.text(0.99, 0.005, f"Frações: {FONTE_ROTULO[P['fonte_fracoes']]}", fontsize=7, color=TINTA2,
+                 ha="right", va="bottom")
         fig.tight_layout(rect=(0, 0.03, 1, 1))
     salvar(fig, "fig_pareto_blocos", artigo)
 
@@ -330,17 +398,21 @@ def fig_ntsb(artigo=False):
 
 
 def main():
-    met, par, red = metricas(), pareto(), redundancia_interna()
+    met, lam, comp, par, red = metricas(), lambda_blocos(), fracoes_por_fonte(), pareto(), redundancia_interna()
     bim, eq = bimotor()
     sen = sensibilidade()
-    for nome, df in (("metricas_motores", met), ("pareto_blocos", par), ("redundancia_interna", red),
+    for nome, df in (("metricas_motores", met), ("lambda_blocos", lam), ("fracoes_ntsb_vs_sdrs", comp),
+                     ("pareto_blocos", par), ("redundancia_interna", red),
                      ("bimotor_vs_monomotor", bim), ("bimotor_beta_equilibrio", eq), ("sensibilidade", sen)):
         df.to_csv(TABELAS / f"{nome}.csv", index=False)
     fig_prob_tempo(); fig_pareto(par); fig_bimotor(eq); fig_sensibilidade(sen); fig_ntsb()
     with plt.rc_context(RC_ARTIGO):  # versões em PDF para o artigo (saida/figuras/artigo/)
         fig_prob_tempo(True); fig_pareto(par, True); fig_bimotor(eq, True); fig_ntsb(True)
     pd.set_option("display.width", 250, "display.max_columns", 30, "display.float_format", lambda v: f"{v:.4g}")
-    for titulo, df in (("Métricas por motor", met.T), ("Pareto (voo de 1 h)", par[["motor", "rotulo", "taxa_1e5h", "parcela", "parcela_min", "parcela_max"]]),
+    print(f"Frações e taxa das unidades: {FONTE_ROTULO[P['fonte_fracoes']]} (fonte_fracoes = {P['fonte_fracoes']})")
+    for titulo, df in (("Métricas por motor", met.T),
+                       ("Lambda por bloco (por 1e5 h)", lam[["motor", "rotulo", "estrutura", "n", "fracao", "lambda_1e5h", "lambda_inf_1e5h", "lambda_sup_1e5h"]]),
+                       ("Frações NTSB x SDRS", comp), ("Pareto (voo de 1 h)", par[["motor", "rotulo", "taxa_1e5h", "parcela", "parcela_min", "parcela_max"]]),
                        ("Redundância interna", red.T), ("Bimotor x monomotor", bim), ("Beta de equilíbrio", eq),
                        ("Sensibilidade", sen)):
         print(f"\n== {titulo}\n{df.to_string()}")

@@ -1,6 +1,6 @@
-"""Etapa 4 - Extensões: Gama-Poisson das taxas e teste da taxa constante.
+"""Etapa 5 - Extensões: Gama-Poisson das taxas e teste da taxa constante.
 
-    python src/04_bayes_weibull.py
+    python src/05_bayes_weibull.py
 
 Só com dados:  Gama-Poisson das taxas (precisa de exposicao_horas em parametros.yaml); sem isso é
                avisado e pulado.
@@ -17,8 +17,9 @@ P = parametros()
 
 
 def gama_poisson():
-    """Taxas absolutas por Gama-Poisson: só com exposicao_horas em parametros.yaml."""
-    cont = rbd.carregar_contagens()
+    """Taxas absolutas por Gama-Poisson: só com exposicao_horas em parametros.yaml. Conta falhas do
+    NTSB, qualquer que seja fonte_fracoes: relatos do SDRS não são falhas em voo."""
+    cont = rbd.carregar_contagens("ntsb")
     lit = rbd.ler_config()[1]
     linhas = []
     for m in MOTORES:

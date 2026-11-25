@@ -7,8 +7,8 @@ amadora se `excluir_construcao_amadora`). Um avião teve falha de motor quando a
 (Events_Sequence) tem um dos códigos de `eventos_falha_motor` e nenhum de `eventos_combustivel`:
 perda de potência depois de pane seca é falha operacional, contada à parte.
 
-  data/processed/ntsb_avioes.csv     base tratada (horas do motor só em monomotores), lida pela etapa 4
-  data/processed/contagens_ntsb.csv  falhas por bloco do RBD (motor, bloco, n), lida pelas etapas 3 e 4
+  data/processed/ntsb_avioes.csv     base tratada (horas do motor só em monomotores), lida pela etapa 5
+  data/processed/contagens_ntsb.csv  falhas por bloco do RBD (motor, bloco, n), lida pelas etapas 4 e 5
   saida/tabelas/ntsb_contagens.csv           aviões, falhas, acidentes e incidentes por motor
   saida/tabelas/ntsb_eventos.csv             tipo de evento das falhas por motor
   saida/tabelas/ntsb_prob_fatal.csv          P(evento fatal | falha de motor), monomotor x multimotor
@@ -17,7 +17,7 @@ perda de potência depois de pane seca é falha operacional, contada à parte.
 
 Blocos: cada finding de motopropulsor (category_no 01, subcategory_no 04 hélice ou 05 grupo
 motopropulsor) de um avião com falha é atribuído a um bloco pelo código section_no + subsection_no
-(capítulo e subcapítulo ATA), com o prefixo mais longo de config/mapa_ntsb.csv. Códigos que não
+(capítulo e subcapítulo ATA), com o prefixo mais longo de config/mapa_componentes.csv. Códigos que não
 dizem o bloco, como "Engine (reciprocating) (general)" (8500) ou "Engine (turbine/turboprop)
 (general)" (7200), ficam fora. Um avião conta uma vez por bloco. Erro de uso do piloto
 (modifier_no 10 "Not used/operated" e 11 "Incorrect use/operation") não é falha de componente e fica fora.
@@ -25,7 +25,7 @@ dizem o bloco, como "Engine (reciprocating) (general)" (8500) ou "Engine (turbin
 import numpy as np
 import pandas as pd
 
-from comum import BRUTO, CONFIG, PROC, TABELAS, parametros, wilson
+from comum import BRUTO, GENERICOS, PROC, TABELAS, bloco_por_codigo, parametros, wilson
 
 P = parametros()
 CHAVE = ["ev_id", "Aircraft_Key"]
@@ -41,9 +41,6 @@ EV_FUEL = {str(k): v for k, v in P["eventos_combustivel"].items()}
 SUBCATEGORIAS_MOTOPROPULSOR = {"04", "05"}
 # modifier_no de erro de uso do piloto: 10 Not used/operated, 11 Incorrect use/operation
 MODIFICADOR_OPERACAO = {"10", "11"}
-MAPA = pd.read_csv(CONFIG / "mapa_ntsb.csv", dtype=str).set_index("codigo")
-# "(general)" de seções que cobrem vários blocos: não dizem o componente e ficam fora de n_i/N
-GENERICOS = {"0000", "7100", "7200", "7300", "8500"}
 
 
 def ler(nome, **kw):
@@ -58,16 +55,6 @@ def horas(s):
     """Horas do motor: 0 no NTSB quer dizer 'não informado'."""
     h = pd.to_numeric(s, errors="coerce")
     return h.where(h > 0)
-
-
-def bloco_ntsb(codigo, motor):
-    """Bloco do RBD pelo código section_no + subsection_no (4 dígitos), prefixo mais longo de mapa_ntsb.csv.
-    Um prefixo sem bloco para o motor cai para o prefixo mais curto (ex.: 7322 no turboélice usa 732)."""
-    for n in (4, 3, 2):
-        p = codigo[:n]
-        if p in MAPA.index and isinstance(MAPA.at[p, motor], str):
-            return MAPA.at[p, motor]
-    return None
 
 
 def findings_motopropulsor():
@@ -137,7 +124,7 @@ def contar_blocos(base):
     fd = findings_motopropulsor().merge(base.loc[base["falha_motor"], CHAVE + ["motor"]], on=CHAVE)
     oper = fd["modifier_no"].isin(MODIFICADOR_OPERACAO)
     fd = fd[~oper].copy()
-    fd["bloco"] = [bloco_ntsb(c, m) for c, m in zip(fd["codigo"], fd["motor"])]
+    fd["bloco"] = [bloco_por_codigo(c, m) for c, m in zip(fd["codigo"], fd["motor"])]
     sem = fd["bloco"].isna()
     generico = sem & fd["codigo"].isin(GENERICOS)
     print(f"Findings de motopropulsor nos aviões com falha: {len(fd)} ({int(oper.sum())} de operação descartados; "
