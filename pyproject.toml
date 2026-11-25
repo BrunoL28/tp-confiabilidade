@@ -1,7 +1,7 @@
 [project]
 name = "tp-confiabilidade"
 version = "0.1.0"
-description = "Confiabilidade de motores aeronáuticos (pistão, turboélice e turbofan): RBD, dados do CENIPA, SDRS e NTSB"
+description = "Confiabilidade de motores aeronáuticos (pistão, turboélice e turbofan): RBD e dados do NTSB"
 readme = "README.md"
 authors = [
     { name = "BrunoL28", email = "brunolima280103@gmail.com" }

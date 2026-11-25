@@ -1,0 +1,17 @@
+motor,tempo,faixa_h,falhas,controles,chance_relativa
+pistao,tso_h,0 a 307,210,1001,1.0
+pistao,tso_h,307 a 725,210,1001,1.0
+pistao,tso_h,725 a 1293,242,999,1.154688021354688
+pistao,tso_h,1293 a inf,241,999,1.1499165832499165
+pistao,tsn_h,0 a 828,184,1173,1.0
+pistao,tsn_h,828 a 2085,274,1172,1.490401023890785
+pistao,tsn_h,2085 a 3896,253,1172,1.3761732081911262
+pistao,tsn_h,3896 a inf,266,1172,1.44688566552901
+turboelice,tso_h,0 a 680,7,45,1.0
+turboelice,tso_h,680 a 2162,6,44,0.8766233766233765
+turboelice,tso_h,2162 a 4065,6,44,0.8766233766233765
+turboelice,tso_h,4065 a inf,13,44,1.8993506493506493
+turboelice,tsn_h,0 a 1529,12,87,1.0
+turboelice,tsn_h,1529 a 3990,3,86,0.25290697674418605
+turboelice,tsn_h,3990 a 9254,19,86,1.6017441860465116
+turboelice,tsn_h,9254 a inf,22,86,1.8546511627906979

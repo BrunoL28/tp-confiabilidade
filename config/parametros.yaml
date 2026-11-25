@@ -6,9 +6,22 @@ beta: {min: 0.01, nom: 0.10, max: 0.30}   # fração de causa comum nos pares re
 #   false -> leitura literal da proposta: toda a taxa vai para os blocos em série e os pares entram por cima
 #   true  -> a taxa publicada é preservada em 1 h: os blocos em série recebem (taxa - contribuição dos pares)
 calibrar_total: true
-semente_amostra: 20261116   # sorteio dos 50 relatórios de pistão
-tamanho_amostra_pistao: 50
-n_dupla_classificacao: 10
-# Gama-Poisson (taxas absolutas): só roda se houver exposição em horas de voo. O CENIPA não traz horas.
+# NTSB, Events_Sequence (eventsoe_no): códigos que contam como falha de motor
+eventos_falha_motor:
+  341: Loss of engine power (total)
+  342: Loss of engine power (partial)
+  340: Powerplant sys/comp malf/fail
+  343: Uncontained engine failure
+  140: Engine shutdown
+# Combustível: falha operacional, contada à parte (perda de potência depois de pane seca não é falha do motor)
+eventos_combustivel:
+  190: Fuel related
+  191: Fuel starvation
+  192: Fuel exhaustion
+  193: Fuel contamination
+  194: Wrong fuel
+# Construção amadora (homebuilt): motores não certificados (Rotax, Jabiru, conversões), fora das taxas da literatura
+excluir_construcao_amadora: true
+# Gama-Poisson (taxas absolutas): só roda se houver exposição em horas de voo. O NTSB não traz horas voadas da frota.
 exposicao_horas: {pistao: null, turboelice: null, turbofan: null}
 forca_prior: 20             # pseudo-contagens do prior (literatura) na atualização das frações

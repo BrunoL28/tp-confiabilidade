@@ -1,4 +1,4 @@
 motor,evidencia,p_falha_1h_sem_evidencia,p_falha_1h_com_evidencia,fator
-pistao,uma unidade de Bombas de combustível (par) já inoperante,0.00012399231231776073,0.0001272178707394015,1.0260141807289995
-pistao,uma unidade de Magnetos (par) já inoperante,0.00012399231231776073,0.00013567896984920238,1.0942530816063154
-turbofan,uma unidade de FADEC A/B (par) já inoperante,1.999998000001333e-06,2.005392310935615e-06,1.0026971581642974
+pistao,uma unidade de Bombas de combustível (par) já inoperante,0.00012399231231776083,0.00012457500717371294,1.004699443417579
+pistao,uma unidade de Magnetos (par) já inoperante,0.00012399231231776083,0.00012894518612165882,1.0399450071646783
+turbofan,uma unidade de FADEC A/B (par) já inoperante,1.9999980000013344e-06,2.0084091980260694e-06,1.0042056032179678

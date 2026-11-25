@@ -1,12 +1,13 @@
-"""Etapa 6 - Extensões: rede bayesiana, atualização das frações e taxas, Weibull e consistência.
+"""Etapa 4 - Extensões: rede bayesiana, atualização das frações e teste da taxa constante.
 
-    python src/06_bayes_weibull.py
+    python src/04_bayes_weibull.py
 
 Sempre roda:   diagnóstico (dada a falha do motor, qual subsistema é a causa mais provável) e
                previsão com evidência (risco no voo com uma unidade redundante já inoperante).
-Só com dados:  atualização das frações (precisa de contagens por bloco), Gama-Poisson das taxas
-               (precisa de exposicao_horas em parametros.yaml), Weibull (precisa de TSO na planilha)
-               e kappa de Cohen (precisa das classificações duplas). O que faltar é avisado e pulado.
+Só com dados:  atualização das frações (precisa de contagens por bloco) e Gama-Poisson das taxas
+               (precisa de exposicao_horas em parametros.yaml). O que faltar é avisado e pulado.
+Tempo de motor: forma de Weibull pelo TSO e pelo TSN dos monomotores do NTSB (caso-controle, ver
+               estatistica.forma_por_caso_controle) e chance relativa de falha por quartil de tempo.
 """
 import pandas as pd
 
@@ -44,7 +45,7 @@ def atualizacoes():
     cont = rbd.carregar_contagens()
     blocos, lit = rbd.ler_config()
     if cont.empty:
-        print("\nAtualização das frações: sem contagens (planilha do CENIPA vazia, SDRS e NTSB ausentes) - pulada.")
+        print("\nAtualização das frações: sem contagens (rode a etapa 2) - pulada.")
     else:
         partes = []
         for m in MOTORES:
@@ -69,37 +70,50 @@ def atualizacoes():
         print("\n== Gama-Poisson das taxas\n" + pd.DataFrame(linhas).to_string(index=False))
     else:
         print("Gama-Poisson das taxas: exposicao_horas não informada em parametros.yaml - pulada "
-              "(o CENIPA não traz horas voadas; as contagens precisam vir de uma frota com horas conhecidas).")
+              "(o NTSB não traz horas voadas da frota).")
 
 
-def planilha():
-    arq = PROC / "planilha_relatorios.xlsx"
+MIN_FALHAS = 20  # abaixo disso o teste não é feito (turbofan: quase nenhum monomotor com horas)
+
+
+def tempo_motor():
+    arq = PROC / "ntsb_avioes.csv"
     if not arq.exists():
-        print("Planilha de relatórios não encontrada - Weibull e kappa pulados.")
+        print("Tempo de motor: ntsb_avioes.csv ausente (rode a etapa 2) - pulado.")
         return
-    p = pd.read_excel(arq, sheet_name="relatorios", dtype=str).fillna("")
-    tso = pd.to_numeric(p["tso_h"].str.replace(",", "."), errors="coerce")
-    res = []
+    b = pd.read_csv(arq)
+    b = b[b["n_motores"] == 1]
+    caso = b["falha_motor"]
+    controle = ~b["falha_motor"] & ~b["combustivel"] & ~b["finding_motopropulsor"]
+    forma, faixas = [], []
     for m in MOTORES:
-        r = es.ajustar_weibull(tso[p["motor"] == m].dropna().tolist())
-        if r:
-            res.append({"motor": m, **r})
-    if res:
-        pd.DataFrame(res).to_csv(TABELAS / "weibull_tso.csv", index=False)
-        print("\n== Weibull do TSO (indicativo: só motores que falharam)\n" + pd.DataFrame(res).round(3).to_string(index=False))
-    else:
-        print("Weibull: menos de 8 valores de TSO por motor na planilha - pulado.")
-    d = p[(p["dupla"] == "S") & (p["bloco_rbd"] != "") & (p["bloco_rbd_2"] != "")]
-    if len(d) >= 5:
-        k = pd.DataFrame([{"campo": "bloco_rbd", **es.kappa_cohen(d["bloco_rbd"], d["bloco_rbd_2"])},
-                          {"campo": "origem", **es.kappa_cohen(d["origem"], d["origem_2"])}])
-        k.to_csv(TABELAS / "consistencia_kappa.csv", index=False)
-        print("\n== Consistência da classificação dupla\n" + k.round(3).to_string(index=False))
-    else:
-        print("Kappa: classificações duplas ainda não preenchidas - pulado.")
+        for var, nome in (("tso_h", "TSO (desde a revisão geral)"), ("tsn_h", "TSN (desde novo)")):
+            d = b[(b["motor"] == m) & b[var].notna()]
+            tf, tc = d.loc[caso, var], d.loc[controle, var]
+            if len(tf) < MIN_FALHAS:
+                print(f"Tempo de motor: {m}, {var}: {len(tf)} falhas com horas - pulado (mínimo {MIN_FALHAS}).")
+                continue
+            forma.append({"motor": m, "tempo": nome, **es.forma_por_caso_controle(tf, tc),
+                          "mediana_falhas_h": tf.median(), "mediana_controles_h": tc.median()})
+            # sem modelo: quartis do tempo dos controles; razão falhas/controles relativa ao 1º quartil
+            q = tc.quantile([0, .25, .5, .75, 1]).to_numpy(copy=True)
+            q[0], q[-1] = 0, float("inf")
+            cf = pd.cut(tf, q, labels=False).value_counts().sort_index()
+            cc = pd.cut(tc, q, labels=False).value_counts().sort_index()
+            for i in range(4):
+                faixas.append({"motor": m, "tempo": var, "faixa_h": f"{q[i]:.0f} a {q[i + 1]:.0f}", "falhas": int(cf.get(i, 0)),
+                               "controles": int(cc.get(i, 0)),
+                               "chance_relativa": (cf.get(i, 0) / cc.get(i, 1)) / (cf.get(0, 0) / cc.get(0, 1))})
+    if forma:
+        forma, faixas = pd.DataFrame(forma), pd.DataFrame(faixas)
+        forma.to_csv(TABELAS / "weibull_tempo_motor.csv", index=False)
+        faixas.to_csv(TABELAS / "chance_falha_por_tempo.csv", index=False)
+        print("\n== Forma de Weibull pelo tempo de motor (monomotores; k = 1 é taxa constante)\n"
+              + forma.round(3).to_string(index=False))
+        print("\n== Chance relativa de falha por quartil de tempo (1º quartil = 1)\n" + faixas.round(2).to_string(index=False))
 
 
 if __name__ == "__main__":
     rede()
     atualizacoes()
-    planilha()
+    tempo_motor()

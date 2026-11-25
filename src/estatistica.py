@@ -1,8 +1,7 @@
-"""Estatística de apoio: atualização bayesiana (Dirichlet e Gama-Poisson), Weibull e kappa de Cohen."""
+"""Estatística de apoio: atualização bayesiana (Dirichlet e Gama-Poisson) e teste da taxa constante."""
 import numpy as np
 import pandas as pd
 from scipy import stats
-from scipy.optimize import brentq
 
 
 def atualizar_fracoes(frac_prior, contagens, forca_prior):
@@ -26,40 +25,27 @@ def gama_poisson(taxa_prior, cv_prior, n_falhas, horas):
                 ic95_sup=stats.gamma.ppf(0.975, a1, scale=1 / b1), peso_dados=horas / b1)
 
 
-def ajustar_weibull(tempos, n_boot=2000, semente=0):
-    """Ajuste de Weibull de 2 parâmetros por máxima verossimilhança aos tempos até a falha (ex.: TSO).
-    Testa forma = 1 (taxa constante) por razão de verossimilhança e dá IC de 95% por bootstrap.
-    Atenção: só há motores que falharam (sem censura), então o ajuste é apenas indicativo."""
-    x = np.asarray([v for v in tempos if v and v > 0], float)
-    if len(x) < 8:
-        return None
+def forma_por_caso_controle(t_falha, t_controle):
+    """Forma de Weibull k a partir de acidentes (desenho caso-controle), sem horas voadas da frota.
 
-    def forma_mv(v):
-        lv = np.log(v)
-        g = lambda k: (v ** k * lv).sum() / (v ** k).sum() - 1 / k - lv.mean()
-        return brentq(g, 0.02, 50)
-
-    v = x / x.mean()  # normaliza para evitar overflow em x**k
-    k = forma_mv(v)
-    escala = x.mean() * (v ** k).mean() ** (1 / k)
-    ll_w = stats.weibull_min.logpdf(x, k, scale=escala).sum()
-    ll_e = stats.expon.logpdf(x, scale=x.mean()).sum()
-    rv = 2 * (ll_w - ll_e)
-    rng = np.random.default_rng(semente)
-    ks = []
-    for _ in range(n_boot):
-        try:
-            ks.append(forma_mv(rng.choice(v, len(v))))
-        except ValueError:
-            pass
-    return dict(n=len(x), forma=k, escala_h=escala, forma_ic95_inf=np.percentile(ks, 2.5),
-                forma_ic95_sup=np.percentile(ks, 97.5), razao_verossimilhanca=rv, p_valor=stats.chi2.sf(rv, 1))
-
-
-def kappa_cohen(a, b):
-    """Concordância entre dois classificadores, descontado o acaso."""
-    a, b = pd.Series(list(a)), pd.Series(list(b))
-    po = (a == b).mean()
-    cats = sorted(set(a) | set(b))
-    pe = sum((a == c).mean() * (b == c).mean() for c in cats)
-    return dict(n=len(a), concordancia=po, kappa=(po - pe) / (1 - pe) if pe < 1 else 1.0)
+    Casos: motores que falharam, no tempo t em que falharam. Controles: motores de aviões acidentados por
+    outra causa, cujo t representa a idade dos motores em uso. Se a taxa de falha é h(t) = c t^(k-1) e a
+    chance de um acidente por outra causa não depende de t, a chance de um acidentado ser caso é
+    proporcional a h(t), e a regressão logística log-chance = a + b ln t dá b = k - 1.
+    k = 1 é a taxa constante do RBD. Ajuste por mínimos quadrados reponderados (IRLS), IC e teste de Wald."""
+    x = np.log(np.concatenate([np.asarray(t_falha, float), np.asarray(t_controle, float)]))
+    y = np.concatenate([np.ones(len(t_falha)), np.zeros(len(t_controle))])
+    X = np.column_stack([np.ones_like(x), x - x.mean()])
+    w = np.zeros(2)
+    for _ in range(50):
+        p = 1 / (1 + np.exp(-X @ w))
+        H = X.T @ (X * (p * (1 - p))[:, None])
+        passo = np.linalg.solve(H, X.T @ (y - p))
+        w += passo
+        if np.abs(passo).max() < 1e-10:
+            break
+    ep = np.sqrt(np.linalg.inv(H)[1, 1])
+    b = w[1]
+    return dict(n_falhas=int(y.sum()), n_controles=int(len(y) - y.sum()), forma=1 + b,
+                forma_ic95_inf=1 + b - 1.96 * ep, forma_ic95_sup=1 + b + 1.96 * ep,
+                p_valor_taxa_constante=2 * stats.norm.sf(abs(b / ep)))

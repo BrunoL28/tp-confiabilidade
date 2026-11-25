@@ -1,6 +1,6 @@
-"""Etapa 5 - Métricas de confiabilidade dos três motores (Seção IV da proposta).
+"""Etapa 3 - Métricas de confiabilidade dos três motores (Seção IV da proposta).
 
-    python src/05_analise_confiabilidade.py
+    python src/03_analise_confiabilidade.py
 
 Tabelas em saida/tabelas/:
   metricas_motores.csv       lambda, MTBF, R(1 h), R(1000 h) por tecnologia
@@ -8,7 +8,7 @@ Tabelas em saida/tabelas/:
   redundancia_interna.csv    efeito de magnetos, bombas e FADEC duplicados
   bimotor_vs_monomotor.csv   dois motores menos confiáveis x um mais confiável
   sensibilidade.csv          efeito das faixas de lambda, beta e taxas de unidade
-Figuras em saida/figuras/.
+Figuras (inclui P(fatal | falha de motor) do NTSB, de ntsb_prob_fatal.csv) em saida/figuras/.
 """
 import matplotlib
 
@@ -180,8 +180,8 @@ def salvar(fig, nome, artigo):
 
 def nota_provisorio(fig, provisorio):
     if provisorio:
-        fig.text(0.01, 0.005, "Frações por subsistema provisórias (config/blocos_rbd.csv) até a planilha do CENIPA, "
-                 "o SDRS e o NTSB serem carregados.", fontsize=7, color=TINTA2, ha="left", va="bottom")
+        fig.text(0.01, 0.005, "Frações por subsistema provisórias (config/blocos_rbd.csv) até a etapa 2 (NTSB) "
+                 "gerar as contagens.", fontsize=7, color=TINTA2, ha="left", va="bottom")
 
 
 def fig_prob_tempo(artigo=False):
@@ -299,34 +299,34 @@ def fig_sensibilidade(sen):
     salvar(fig, "fig_sensibilidade", False)
 
 
-def fig_cenipa(artigo=False):
-    arq = TABELAS / "cenipa_prob_acidente.csv"
+def fig_ntsb(artigo=False):
+    arq = TABELAS / "ntsb_prob_fatal.csv"
     if not arq.exists():
         return
     d = pd.read_csv(arq)
-    d = d[d["grupo"].isin(["monomotor", "multimotor"]) & (d["falhas"] > 0)].reset_index(drop=True)
+    d = d[d["grupo"].isin(["monomotor", "multimotor"]) & (d["eventos"] >= 10)].reset_index(drop=True)
     fig, ax = plt.subplots(figsize=(3.5, 1.85) if artigo else (7.6, 3.0))
     y = np.arange(len(d))[::-1]
     for yi, r in zip(y, d.itertuples()):
         ax.plot([100 * r.ic95_inf, 100 * r.ic95_sup], [yi, yi], color=COR[r.motor], linewidth=2)
-        ax.plot(100 * r.p_acidente, yi, "o", color=COR[r.motor], markersize=5 if artigo else 7,
+        ax.plot(100 * r.p_fatal, yi, "o", color=COR[r.motor], markersize=5 if artigo else 7,
                 markeredgecolor="white" if artigo else FUNDO, markeredgewidth=1 if artigo else 1.5)
-        ax.text(100 * r.ic95_sup + 2, yi, f"{100 * r.p_acidente:.0f}%  ({r.acidentes}/{r.falhas})", va="center",
+        ax.text(100 * r.ic95_sup + 2, yi, f"{100 * r.p_fatal:.0f}%  ({r.fatais}/{r.eventos})", va="center",
                 fontsize=6.5 if artigo else 8)
     ax.set_yticks(y, [f"{ROTULO_MOTOR[r.motor]}, {r.grupo}" for r in d.itertuples()])
     ax.set(xlim=(0, 100), ylim=(-0.6, len(d) - 0.4),
-           xlabel="Falhas que terminaram em acidente (%)" if artigo else "Ocorrências de falha de motor classificadas como acidente (%)")
+           xlabel="Falhas com vítima fatal (%)" if artigo else "Falhas de motor em que houve vítima fatal (%)")
     ax.grid(True, axis="x")
     ax.set_axisbelow(True)
     ax.tick_params(axis="y", length=0)
     if artigo:
         fig.tight_layout(pad=0.3)
     else:
-        ax.set_title("Falha de motor que termina em acidente (CENIPA, 2007–2026)")
-        fig.text(0.01, 0.005, "Ponto: proporção; traço: intervalo de Wilson de 95%. Incidentes leves são subnotificados "
-                 "na aviação geral, o que eleva a proporção.", fontsize=7, color=TINTA2)
+        ax.set_title("Falha de motor com vítima fatal (NTSB, 2008–2026)")
+        fig.text(0.01, 0.005, "Ponto: proporção; traço: intervalo de Wilson de 95%. Grupos com menos de 10 eventos "
+                 "ficam fora (turbofan monomotor).", fontsize=7, color=TINTA2)
         fig.tight_layout(rect=(0, 0.04, 1, 1))
-    salvar(fig, "fig_cenipa_prob_acidente", artigo)
+    salvar(fig, "fig_ntsb_prob_fatal", artigo)
 
 
 def main():
@@ -336,9 +336,9 @@ def main():
     for nome, df in (("metricas_motores", met), ("pareto_blocos", par), ("redundancia_interna", red),
                      ("bimotor_vs_monomotor", bim), ("bimotor_beta_equilibrio", eq), ("sensibilidade", sen)):
         df.to_csv(TABELAS / f"{nome}.csv", index=False)
-    fig_prob_tempo(); fig_pareto(par); fig_bimotor(eq); fig_sensibilidade(sen); fig_cenipa()
+    fig_prob_tempo(); fig_pareto(par); fig_bimotor(eq); fig_sensibilidade(sen); fig_ntsb()
     with plt.rc_context(RC_ARTIGO):  # versões em PDF para o artigo (saida/figuras/artigo/)
-        fig_prob_tempo(True); fig_pareto(par, True); fig_bimotor(eq, True); fig_cenipa(True)
+        fig_prob_tempo(True); fig_pareto(par, True); fig_bimotor(eq, True); fig_ntsb(True)
     pd.set_option("display.width", 250, "display.max_columns", 30, "display.float_format", lambda v: f"{v:.4g}")
     for titulo, df in (("Métricas por motor", met.T), ("Pareto (voo de 1 h)", par[["motor", "rotulo", "taxa_1e5h", "parcela", "parcela_min", "parcela_max"]]),
                        ("Redundância interna", red.T), ("Bimotor x monomotor", bim), ("Beta de equilíbrio", eq),

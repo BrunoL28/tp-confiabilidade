@@ -2,61 +2,62 @@
 
 Roteiro de execução do trabalho (Seção IV da proposta). Cada etapa é um script em `src/`;
 parâmetros e hipóteses ficam em `config/`, e nada de numérico está escondido no código.
+A única base de dados é a do NTSB (avall, 2008 a 2026).
 
 ```
-pip install -r requirements.txt
-python src/executar_tudo.py        # etapas 2 a 6, com o que houver em data/
+uv run python src/executar_tudo.py        # etapas 2 a 4, com o que está em data/raw/ntsb/
 ```
+
+## Objetivos e onde cada um é respondido
+
+| Objetivo | Onde |
+|----------|------|
+| 1. Arquitetura de cada motor em diagrama de blocos | `config/blocos_rbd.csv`, `rbd.py` |
+| 2. λ, MTBF e R(t) de cada motor | `metricas_motores.csv`; hipótese de taxa constante testada em `weibull_tempo_motor.csv` |
+| 3. Efeito das redundâncias (magnetos, FADEC, dois motores) | `redundancia_interna.csv`, `bimotor_*.csv`, `ntsb_prob_fatal.csv` |
+| 4. Subsistemas que mais contribuem para a falha | `pareto_blocos.csv`, `rede_bayesiana_diagnostico.csv` |
 
 ## Etapas
 
 | # | Script | O que faz | Depende de |
 |---|--------|-----------|------------|
-| 1 | `01_extrair_bases.py cenipa\|ntsb\|sdrs` | Baixa os dados abertos do CENIPA e o `avall.zip` do NTSB; para o SDRS, imprime o passo a passo da consulta | internet |
-| 2 | `02_tratar_cenipa.py` | Uma linha por aeronave-ocorrência, filtro SCF-PP, tipo e número de motores; tabelas de contagem, P(acidente \| falha), origem e combustível à parte | etapa 1 |
-| 3 | `03_amostra_relatorios.py [--baixar-pdfs]` | Sorteia 50 relatórios de pistão (semente em `parametros.yaml`), inclui todos os de turboélice e jato, marca 10 para classificação dupla e cria `data/processed/planilha_relatorios.xlsx` | etapa 2 |
-| 4 | `04_tratar_ntsb_sdrs.py` | Conta falhas por bloco do RBD no SDRS (código JASC) e no NTSB (findings) | etapa 1 |
-| 5 | `05_analise_confiabilidade.py` | λ, MTBF, R(t), Pareto, redundâncias, dois pistões × uma turbina, sensibilidade; figuras | config |
-| 6 | `06_bayes_weibull.py` | Rede bayesiana (diagnóstico e previsão), atualização das frações, Gama–Poisson, Weibull do TSO, kappa | planilha preenchida |
+| 1 | `01_extrair_ntsb.py` | Baixa o `avall.zip` do NTSB e exporta para CSV as tabelas events, aircraft, engines, Findings e Events_Sequence (mdbtools) | internet |
+| 2 | `02_tratar_ntsb.py` | Uma linha por avião-evento; falha de motor pelos códigos da Events_Sequence; falhas por bloco do RBD pelos findings; P(evento fatal \| falha), monomotor × multimotor; combustível à parte | etapa 1 |
+| 3 | `03_analise_confiabilidade.py` | λ, MTBF, R(t), Pareto, redundâncias, dois pistões × uma turbina, sensibilidade; figuras | etapa 2 e config |
+| 4 | `04_bayes_weibull.py` | Rede bayesiana (diagnóstico e previsão), atualização das frações, Gama–Poisson, forma de Weibull pelo tempo de motor | etapas 2 e 3 |
 
 `rbd.py` é o modelo (Eq. 1 da proposta), `rede_bayesiana.py` a rede equivalente, `estatistica.py` as rotinas estatísticas.
 
-## O que já é dado medido e o que ainda é hipótese
+## Tratamento da base do NTSB (etapa 2)
+
+- **Universo.** Aviões (`acft_category = AIR`) com motor a pistão (`REC`), turboélice (`TP`) ou turbofan (`TF`, `GTFN`). Turbojato, turboeixo e elétrico ficam fora, e também os aviões com tipos de motor misturados. Construção amadora (`homebuilt = Y`, 3 258 aviões, motores Rotax, Jabiru e conversões automotivas) fica fora porque as taxas da literatura são de motores certificados (`excluir_construcao_amadora`). Eventos fora dos EUA ficam: são 107 das 161 falhas de turbofan.
+- **Falha de motor.** A Events_Sequence tem um dos códigos de `eventos_falha_motor` (perda de potência total ou parcial, mau funcionamento do grupo motopropulsor, falha não contida, corte do motor). Se a mesma sequência tem um código de `eventos_combustivel` (pane seca, falta de alimentação, contaminação, combustível errado), a perda de potência é operacional e vai para `ntsb_combustivel_a_parte.csv`.
+- **Número de motores.** `num_eng`; vazio ou zero vira o número de linhas da tabela engines. Turbofans com `num_eng = 1` que não são SF50 ou L-39 são erro de cadastro (há B747, 777 e A380 com 1 motor: o NTSB às vezes lista só o motor envolvido) e ficam com número de motores desconhecido.
+- **Horas do motor.** `eng_time_total` (TSN) e `eng_time_overhaul` (TSO). Zero quer dizer "não informado". TSO maior que TSN é descartado. As horas só são usadas em monomotores, porque nos multimotores não se sabe qual motor falhou.
+- **Blocos do RBD.** Findings de motopropulsor (texto com "power plant" ou "propeller") dos aviões com falha de motor, atribuídos por `REGRAS_NTSB`. Um avião conta uma vez por bloco. Erro de uso do piloto ("Incorrect use/operation") não conta.
+
+## O que é dado medido e o que é hipótese
 
 | Item | Situação |
 |------|----------|
-| Contagens, P(acidente \| falha), origem das falhas (CENIPA) | Medido na base aberta (2007 a 09/05/2026). A cópia usada veio de um repositório público, não do portal: ver `data/raw/cenipa/FONTE.txt` |
-| Taxa total de cada motor | Literatura (`config/taxas_literatura.csv`). A do turbofan (CFM56-7B) é fonte de fabricante, ref. [11]: CFM International, *CFM56-7B Engine in Service with TUIfly Sets New First-Run World Record*, comunicado de imprensa, Hanover, 6 jun. 2012 |
-| Frações por subsistema | Medidas: n_i/N somando planilha do CENIPA, SDRS e NTSB (etapa 4). Os valores de `config/blocos_rbd.csv` só voltam a valer se não houver contagens |
-| Taxa das unidades redundantes | Estimada pelas contagens dos pares (`taxa_unidade_medida` em `rbd.py`); a faixa de `blocos_rbd.csv` só vale sem contagens |
+| Falhas por bloco, P(fatal \| falha), horas do motor | Medidos no NTSB, 2008 a 2026 |
+| Taxa total de cada motor | Literatura (`config/taxas_literatura.csv`). O NTSB não traz horas voadas da frota, então não dá taxa absoluta. A do turbofan (CFM56-7B) é fonte de fabricante, ref. [11] |
+| Frações por subsistema | n_i/N das falhas por bloco do NTSB: 1 149 registros no pistão, 98 no turboélice, 53 no turbofan |
+| Taxa das unidades redundantes | Estimada pelas contagens dos pares: magnetos 102, bombas 12, FADEC 0 (`taxa_unidade_medida` em `rbd.py`) |
 | β | Faixa assumida, como previsto na proposta |
-| Weibull, kappa, atualização bayesiana | Rodados com a planilha preenchida. O kappa (n = 7) ainda não vale como concordância entre avaliadores: `bloco_rbd_2`/`origem_2` precisam ser refeitos por outro membro da equipe |
-
-## Para fechar o trabalho
-
-1. Rodar `python src/01_extrair_bases.py cenipa` em uma rede comum (ou baixar os 4 CSV do portal) e repetir a etapa 2.
-2. Ler os 86 relatórios e preencher as colunas amarelas da planilha (aba `instrucoes`). `--baixar-pdfs` baixa os PDF e gera sugestões de modelo de motor, TSN, TSO e bloco para conferir na leitura.
-3. Exportar as consultas do SDRS e baixar o NTSB (etapa 1), rodar a etapa 4.
-4. Rodar de novo as etapas 5 e 6: as frações passam a ser as medidas e o aviso de "provisórias" some das figuras.
+| Taxa constante | Testada pela forma de Weibull, caso-controle (etapa 4) |
 
 ## Decisões de modelagem que valem uma linha no relatório
 
 - **Taxa total preservada.** `calibrar_total: true`: a taxa publicada de cada motor vale para um voo de 1 h, e os blocos em série recebem o que sobra depois da contribuição dos pares. Consequência: β e a taxa das unidades só redistribuem a taxa publicada entre os blocos e não mudam P(falha em 1 h); na sensibilidade, quem move o resultado é a taxa total.
-- **Frações por contagem de registros.** n_i/N supõe que a chance de um registro entrar no SDRS, no NTSB ou no CENIPA é a mesma para todos os blocos. As três fontes medem coisas diferentes (dificuldade em serviço na frota dos EUA, achados de acidentes nos EUA, ocorrências no Brasil) e são somadas sem peso. O NTSB entra com todos os motores do tipo (REC, TP, TF), não só os modelos escolhidos; o SDRS, só com Lycoming 540, PT6A-34 e CFM56-7.
-- **SDRS registra dificuldades, não só falhas.** Leitura de 101 dos 883 registros de fan do CFM56-7 (`data/raw/sdrs/amostra_fan_cfm56_7.json`): 94 achados em inspeção ou manutenção, 84 de desgaste de itens trocados na lubrificação das pás (espaçadores, calços, revestimento, vedações), 7 em voo, 3 deles colisão com ave. 95% dos registros de fan e 68% de todos os do CFM56-7 vêm de um único operador (ASAA). As frações do turbofan medem achados de manutenção; o fan (28%) é o caso mais visível.
-- **Registros genéricos.** Códigos que não dizem o componente (JASC 7200 e 8500, "Power plant (general)" no NTSB) e relatórios `indeterminado` ficam fora de n_i/N, o que supõe que eles se distribuem entre os blocos na mesma proporção dos classificados. No turbofan são 768 registros 7200, uma parte grande da amostra.
-- **Fora do RBD.** Escapamento (78xx), partida (80xx), indicação (77xx), berço (7120), controles de cabine (7603) e ignição do turboélice não têm bloco; erro de operação do piloto (`so_operacional = S`, "Incorrect use/operation" no NTSB) não conta como falha de componente; no NTSB entram só aviões.
-- **Turbinas do turboélice num bloco só.** O JASC 7250 e o NTSB não separam a turbina do compressor da turbina livre; o bloco `turbinas` soma as duas. Em série com taxa constante isso não muda λ, MTBF nem R(t), só tira a separação do Pareto.
-- **Taxa das unidades redundantes.** λ_unidade = (n_par / 2) × λ_motor / N_série: cada registro de bloco em série vale λ_motor / N_série, e o registro do par é de uma das duas unidades. Supõe que o SDRS registra falha de magneto, bomba e FADEC na mesma proporção que as dos blocos em série; falhas do FADEC (19 registros) que o próprio sistema tolera podem não virar registro, o que subestimaria essa taxa. No pistão, o JASC 7314 cobre só a bomba acionada pelo motor.
-- **Taxa constante.** O RBD supõe λ constante, mas o Weibull do TSO dos pistões que falharam (n = 10) dá forma ≈ 2,3 (IC 95% 1,4 a 6,0), sinal de desgaste. É indicativo: só entram motores que falharam, sem os que seguem voando (censura).
+- **Frações por contagem de falhas.** n_i/N supõe que a chance de uma falha virar evento do NTSB é a mesma para todos os blocos. O NTSB registra sobretudo acidentes (no pistão, 2 529 das 2 562 falhas são acidentes), então as frações descrevem as falhas que levaram a acidente ou incidente investigado. Os motores entram por tipo (REC, TP, TF), não por modelo.
+- **Poucos dados nas turbinas.** São 98 registros no turboélice e 53 no turbofan, com intervalos largos no Pareto. Blocos sem nenhum registro (lubrificação do turbofan, entrada de ar do turboélice) ficam com fração 0, e o limite superior do intervalo de Jeffreys mostra até onde podem ir.
+- **Registros genéricos.** "Power plant (general)" e findings sem componente ficam fora de n_i/N, o que supõe que eles se distribuem entre os blocos na mesma proporção dos classificados.
+- **Fora do RBD.** Escapamento, partida, comandos de cabine (manete, mistura), reversor e sangria não têm bloco.
+- **Turbinas do turboélice num bloco só.** O NTSB não separa a turbina do compressor da turbina livre; o bloco `turbinas` soma as duas. Em série com taxa constante isso não muda λ, MTBF nem R(t), só tira a separação do Pareto.
+- **Taxa das unidades redundantes.** λ_unidade = (n_par / 2) × λ_motor / N_série: cada registro de bloco em série vale λ_motor / N_série, e o registro do par é de uma das duas unidades. Com zero registros (FADEC), o nominal é a média da posteriori de Jeffreys, (0 + ½) / (N_série + 1), e a faixa vai de 0 ao limite de 97,5%: zero falhas em 53 não quer dizer taxa zero. Falhas que o próprio par tolera raramente viram acidente, o que tende a subestimar essa taxa.
+- **Taxa constante (forma de Weibull).** Não há horas da frota, então o teste é caso-controle: casos são monomotores com falha de motor; controles são monomotores acidentados por outra causa (sem evento de motor, pane seca nem finding de motopropulsor), cujo TSO representa a idade dos motores em uso. Se h(t) ∝ t^(k−1) e os outros acidentes não dependem da idade do motor, a regressão logística da falha em ln t dá k − 1. No pistão, o TSO dá k = 0,99 (IC 95% 0,94 a 1,05; 903 falhas), compatível com taxa constante. O TSN dá k = 1,08 (1,02 a 1,13), um desgaste leve ao longo da vida do motor. No turboélice há pouco dado (32 falhas com TSO), e no turbofan quase nenhum monomotor tem horas. A hipótese falha se os controles forem sistematicamente mais novos ou mais velhos que a frota.
 - **1000 h.** A Eq. 1 aplicada a t = 1000 h supõe que uma unidade falhada nunca é reparada. `R_1000h_redundancia_restaurada` supõe o par restaurado a cada voo de 1 h (cheque de magnetos antes da decolagem), que é o caso real.
 - **MTBF.** Com pares, R(t) não é exponencial; `mtbf_sem_reparo_h` é a integral de R(t) e `mtbf_redundancia_restaurada_h` é 1/λ equivalente de um voo.
-- **Dois motores.** Perda total de propulsão pela Eq. 1 com o motor no lugar da unidade. Não modela a dificuldade de voar um bimotor com um motor parado; a tabela do CENIPA dá a medida empírica disso.
+- **Dois motores.** Perda total de propulsão pela Eq. 1 com o motor no lugar da unidade. O modelo não trata a dificuldade de voar um bimotor com um motor parado. A medida empírica está em `ntsb_prob_fatal.csv`: nas falhas de motor, 43% dos pistões multimotores tiveram vítima fatal, contra 11% dos monomotores.
 - **Fonte da taxa do turbofan.** 0,002 IFSD por 1000 h vem de comunicado da CFM (ref. [11]); não há estatística independente da FAA ou da EASA para o CFM56-7B.
-
-## Fontes que não foram testadas contra o site real
-
-O ambiente em que o pipeline foi montado não alcançava cenipa.fab.mil.br, dados.gov.br, sdrs.faa.gov nem data.ntsb.gov.
-Os endereços de download da etapa 1, o leitor de PDF da etapa 3 e os nomes de colunas do NTSB/SDRS na etapa 4 foram
-escritos a partir da documentação e testados só com arquivos sintéticos; confira na primeira execução.
-`config/mapa_jasc.csv` e as regras do NTSB também merecem revisão de quem conhece os manuais dos motores escolhidos.

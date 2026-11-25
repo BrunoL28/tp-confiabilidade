@@ -1,0 +1,6 @@
+evento,pistao,turboelice,turbofan
+Loss of engine power (total),1530,100,25
+Loss of engine power (partial),976,52,34
+Powerplant sys/comp malf/fail,325,34,99
+Uncontained engine failure,2,2,21
+Engine shutdown,20,6,24

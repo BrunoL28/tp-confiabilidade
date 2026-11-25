@@ -107,25 +107,11 @@ def ler_config():
 
 
 def carregar_contagens():
-    """Junta as contagens por bloco que existirem: planilha do CENIPA, SDRS e NTSB."""
-    partes = []
-    plan = PROC / "planilha_relatorios.xlsx"
-    if plan.exists():
-        p = pd.read_excel(plan, sheet_name="relatorios", dtype=str).fillna("")
-        p = p[(p["bloco_rbd"] != "") & (p["so_operacional"].str.upper() != "S")]
-        p = p[~p["bloco_rbd"].isin(["indeterminado", "fora_do_modelo"])]
-        # planilha distribuída com as duas turbinas do turboélice separadas; no modelo viraram um bloco só
-        p["bloco_rbd"] = p["bloco_rbd"].replace({"turbina_compressor": "turbinas", "turbina_livre": "turbinas"})
-        if len(p):
-            partes.append(p.groupby(["motor", "bloco_rbd"]).size().rename("n").reset_index()
-                          .rename(columns={"bloco_rbd": "bloco"}).assign(fonte="cenipa"))
-    for fonte in ("sdrs", "ntsb"):
-        arq = PROC / f"contagens_{fonte}.csv"
-        if arq.exists():
-            partes.append(pd.read_csv(arq).assign(fonte=fonte))
-    if not partes:
+    """Falhas por bloco do NTSB (etapa 2). Vazio se a etapa 2 ainda não rodou."""
+    arq = PROC / "contagens_ntsb.csv"
+    if not arq.exists():
         return pd.DataFrame(columns=["motor", "bloco", "n", "fonte"])
-    return pd.concat(partes, ignore_index=True)
+    return pd.read_csv(arq).assign(fonte="ntsb")
 
 
 def fracoes_serie(motor, blocos=None, contagens=None):
@@ -154,7 +140,9 @@ def fracoes_serie(motor, blocos=None, contagens=None):
 def taxa_unidade_medida(motor, grupo, taxa_total, nivel, blocos, contagens):
     """Taxa de cada unidade de um par estimada pelas contagens, na mesma escala das frações em série:
     cada registro de bloco em série vale taxa_total / N_serie, e o registro do par é de uma das duas
-    unidades, daí o /2. Faixa: intervalo de Jeffreys de n_par / (n_par + N_serie). None sem contagens."""
+    unidades, daí o /2. Faixa: intervalo de Jeffreys de n_par / (n_par + N_serie). None sem contagens.
+    Par sem nenhum registro (ex.: FADEC no NTSB): zero registros não quer dizer taxa zero; o nominal é a
+    média da posteriori de Jeffreys, (0 + 1/2) / (N_serie + 1), e a faixa vai de 0 ao limite de 97,5%."""
     from scipy.stats import beta as _beta
     serie = blocos[(blocos["motor"] == motor) & (blocos["estrutura"] == "serie")]["bloco"]
     c = contagens[contagens["motor"] == motor]
@@ -163,7 +151,7 @@ def taxa_unidade_medida(motor, grupo, taxa_total, nivel, blocos, contagens):
     if N == 0:
         return None
     a, b = n + 0.5, N + 0.5
-    p = {"nom": n / (n + N), "min": 0.0 if n == 0 else _beta.ppf(0.025, a, b), "max": _beta.ppf(0.975, a, b)}[nivel]
+    p = {"nom": n / (n + N) if n else a / (a + b), "min": 0.0 if n == 0 else _beta.ppf(0.025, a, b), "max": _beta.ppf(0.975, a, b)}[nivel]
     # ponytail: usa a taxa total no lugar da taxa em série (diferença = contribuição dos pares, < 1% aqui)
     return p / (1 - p) / 2 * taxa_total
 
@@ -207,4 +195,5 @@ if __name__ == "__main__":  # conferência da estimativa dos pares: 25 registros
     _c = pd.DataFrame({"motor": "x", "bloco": ["s1", "s2", "p"], "n": [60, 40, 25]})
     assert abs(taxa_unidade_medida("x", "p", 1.0, "nom", _b, _c) - 0.125) < 1e-12  # (25/125)/(100/125)/2
     assert taxa_unidade_medida("x", "p", 1.0, "nom", _b, _c.iloc[:0]) is None
+    assert abs(taxa_unidade_medida("x", "p", 1.0, "nom", _b, _c.iloc[:2]) - 0.5 / 100.5 / 2) < 1e-12  # par sem registro: Jeffreys
     print("ok")

@@ -14,24 +14,10 @@ for _d in (BRUTO, PROC, TABELAS, FIGURAS):
 
 MOTORES = ["pistao", "turboelice", "turbofan"]
 ROTULO_MOTOR = {"pistao": "Pistão", "turboelice": "Turboélice", "turbofan": "Turbofan"}
-# Como o CENIPA nomeia o tipo de motor -> nome usado no trabalho
-MOTOR_CENIPA = {"PISTÃO": "pistao", "TURBOÉLICE": "turboelice", "JATO": "turbofan"}
 
 
 def parametros():
     return yaml.safe_load((CONFIG / "parametros.yaml").read_text(encoding="utf-8"))
-
-
-def ler_cenipa(nome):
-    """Lê uma tabela dos dados abertos (ocorrencia, ocorrencia_tipo, aeronave, fator_contribuinte)."""
-    caminho = BRUTO / "cenipa" / f"{nome}.csv"
-    if not caminho.exists():
-        raise FileNotFoundError(f"{caminho} não existe. Rode: python src/01_extrair_bases.py cenipa")
-    # Cópia do GitHub vem em latin-1; o portal oficial publica em UTF-8 com BOM.
-    try:
-        return pd.read_csv(caminho, sep=";", dtype=str, encoding="utf-8-sig")
-    except UnicodeDecodeError:
-        return pd.read_csv(caminho, sep=";", dtype=str, encoding="latin-1")
 
 
 def wilson(k, n, z=1.96):
