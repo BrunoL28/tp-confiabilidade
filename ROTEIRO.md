@@ -47,7 +47,7 @@ Conferências rápidas depois de rodar:
 
 | Mudança | Rodar |
 |---|---|
-| `eventos_falha_motor`, `eventos_combustivel` ou `excluir_construcao_amadora` em `parametros.yaml`, ou `REGRAS_NTSB` em `src/02_tratar_ntsb.py` | `02`, depois `03` e `04` |
+| `eventos_falha_motor`, `eventos_combustivel` ou `excluir_construcao_amadora` em `parametros.yaml`, ou `config/mapa_ntsb.csv` | `02`, depois `03` e `04` |
 | Outros itens de `parametros.yaml`, `blocos_rbd.csv` ou `taxas_literatura.csv` | `03` e `04` |
 
 Cada etapa se roda assim: `uv run python src/03_analise_confiabilidade.py`. Rodar `executar_tudo.py` de novo também funciona.

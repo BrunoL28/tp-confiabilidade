@@ -15,16 +15,17 @@ perda de potência depois de pane seca é falha operacional, contada à parte.
   saida/tabelas/ntsb_combustivel_a_parte.csv falhas operacionais de combustível
   saida/tabelas/ntsb_falhas_por_ano.csv      falhas por ano
 
-Blocos: cada finding de motopropulsor de um avião com falha é atribuído a um bloco pelo texto de
-finding_description (REGRAS_NTSB). Um avião conta uma vez por bloco. Erro de uso do piloto
-("Incorrect use/operation") não é falha de componente e fica fora.
+Blocos: cada finding de motopropulsor (category_no 01, subcategory_no 04 hélice ou 05 grupo
+motopropulsor) de um avião com falha é atribuído a um bloco pelo código section_no + subsection_no
+(capítulo e subcapítulo ATA), com o prefixo mais longo de config/mapa_ntsb.csv. Códigos que não
+dizem o bloco, como "Engine (reciprocating) (general)" (8500) ou "Engine (turbine/turboprop)
+(general)" (7200), ficam fora. Um avião conta uma vez por bloco. Erro de uso do piloto
+(modifier_no 10 "Not used/operated" e 11 "Incorrect use/operation") não é falha de componente e fica fora.
 """
-import re
-
 import numpy as np
 import pandas as pd
 
-from comum import BRUTO, MOTORES, PROC, TABELAS, parametros, wilson
+from comum import BRUTO, CONFIG, PROC, TABELAS, parametros, wilson
 
 P = parametros()
 CHAVE = ["ev_id", "Aircraft_Key"]
@@ -36,25 +37,13 @@ JATO_MONOMOTOR = r"SF50|L-?39"
 EV_MOTOR = {str(k): v for k, v in P["eventos_falha_motor"].items()}
 EV_FUEL = {str(k): v for k, v in P["eventos_combustivel"].items()}
 
-# (expressão no texto do finding, bloco no pistão, no turboélice, no turbofan); a primeira que casar vale
-REGRAS_NTSB = [
-    (r"propeller|prop governor|governor", "helice_governador", "helice_governador", None),
-    (r"magneto|ignition|spark plug", "magnetos", None, None),
-    (r"fuel pump", "bombas", "combustivel_fcu", "combustivel"),
-    (r"fadec|electronic eng(ine)? control|engine control unit", None, "combustivel_fcu", "fadec"),
-    (r"carburetor|fuel inject|fuel control|fuel distrib|fuel nozzle|fuel", "carburador_injecao", "combustivel_fcu", "combustivel"),
-    (r"induction|air intake|inlet|turbocharg|supercharg", "admissao", "entrada_ar", "fan"),
-    (r"\boil\b|lubricat", "lubrificacao", "lubrificacao", "lubrificacao"),
-    (r"cooling|baffle", "arrefecimento", None, None),
-    (r"reduction gear", None, "caixa_reducao", None),
-    (r"accessory (drive|gear)", "nucleo", "lubrificacao", "caixa_acessorios"),
-    (r"\bfan\b", None, None, "fan"),
-    (r"compressor", None, "compressor", "compressores"),
-    (r"combust", None, "camara_combustao", "camara_combustao"),
-    (r"power turbine|free turbine", None, "turbinas", "turbinas"),
-    (r"turbine section|turbine", None, "turbinas", "turbinas"),
-    (r"recip|cylinder|crankshaft|connecting rod|valve|piston|power section|crankcase|camshaft", "nucleo", None, None),
-]
+# Findings de motopropulsor: Aircraft (01) > propeller/rotor (04) ou power plant (05)
+SUBCATEGORIAS_MOTOPROPULSOR = {"04", "05"}
+# modifier_no de erro de uso do piloto: 10 Not used/operated, 11 Incorrect use/operation
+MODIFICADOR_OPERACAO = {"10", "11"}
+MAPA = pd.read_csv(CONFIG / "mapa_ntsb.csv", dtype=str).set_index("codigo")
+# "(general)" de seções que cobrem vários blocos: não dizem o componente e ficam fora de n_i/N
+GENERICOS = {"0000", "7100", "7200", "7300", "8500"}
 
 
 def ler(nome, **kw):
@@ -71,13 +60,22 @@ def horas(s):
     return h.where(h > 0)
 
 
-def bloco_ntsb(descricao, motor):
-    d = str(descricao).lower()
-    i = MOTORES.index(motor) + 1
-    for regra in REGRAS_NTSB:
-        if re.search(regra[0], d):
-            return regra[i]
+def bloco_ntsb(codigo, motor):
+    """Bloco do RBD pelo código section_no + subsection_no (4 dígitos), prefixo mais longo de mapa_ntsb.csv.
+    Um prefixo sem bloco para o motor cai para o prefixo mais curto (ex.: 7322 no turboélice usa 732)."""
+    for n in (4, 3, 2):
+        p = codigo[:n]
+        if p in MAPA.index and isinstance(MAPA.at[p, motor], str):
+            return MAPA.at[p, motor]
     return None
+
+
+def findings_motopropulsor():
+    fd = ler("Findings", usecols=CHAVE + ["category_no", "subcategory_no", "section_no", "subsection_no",
+                                          "modifier_no", "finding_description"])
+    fd = fd[fd["category_no"].eq("01") & fd["subcategory_no"].isin(SUBCATEGORIAS_MOTOPROPULSOR)].copy()
+    fd["codigo"] = fd["section_no"].str.zfill(2) + fd["subsection_no"].str.zfill(2)
+    return fd
 
 
 def montar_base():
@@ -124,8 +122,7 @@ def montar_base():
     base["eventos_motor"] = cod.apply(lambda s: "|".join(EV_MOTOR[c] for c in sorted(s) if c in EV_MOTOR))
     base["combustivel"] = cod.apply(lambda s: bool(s & EV_FUEL.keys()))
     base["falha_motor"] = base["eventos_motor"].ne("") & ~base["combustivel"]
-    fd = ler("Findings", usecols=CHAVE + ["finding_description"])
-    pp = fd.loc[fd["finding_description"].str.contains("power plant|propeller", case=False, na=False), CHAVE]
+    pp = findings_motopropulsor()[CHAVE]
     base["finding_motopropulsor"] = base.set_index(CHAVE).index.isin(pd.MultiIndex.from_frame(pp.drop_duplicates()))
     base = base.drop(columns=["codigos", "num_eng", "ev_year", "linhas_motor", "acft_category"])
 
@@ -137,14 +134,15 @@ def montar_base():
 
 
 def contar_blocos(base):
-    fd = ler("Findings", usecols=CHAVE + ["finding_description"])
-    fd = fd[fd["finding_description"].str.contains("power plant|propeller", case=False, na=False)]
-    fd = fd.merge(base.loc[base["falha_motor"], CHAVE + ["motor"]], on=CHAVE)
-    oper = fd["finding_description"].str.contains("Incorrect use/operation|Not used/operated", case=False)
+    fd = findings_motopropulsor().merge(base.loc[base["falha_motor"], CHAVE + ["motor"]], on=CHAVE)
+    oper = fd["modifier_no"].isin(MODIFICADOR_OPERACAO)
     fd = fd[~oper].copy()
-    fd["bloco"] = [bloco_ntsb(d, m) for d, m in zip(fd["finding_description"], fd["motor"])]
-    print(f"Findings de motopropulsor nos aviões com falha: {len(fd)} ({int(oper.sum())} de operação descartados, "
-          f"{int(fd['bloco'].isna().sum())} sem bloco no modelo)")
+    fd["bloco"] = [bloco_ntsb(c, m) for c, m in zip(fd["codigo"], fd["motor"])]
+    sem = fd["bloco"].isna()
+    generico = sem & fd["codigo"].isin(GENERICOS)
+    print(f"Findings de motopropulsor nos aviões com falha: {len(fd)} ({int(oper.sum())} de operação descartados; "
+          f"sem bloco: {int(generico.sum())} genéricos, sem componente, e {int((sem & ~generico).sum())} "
+          f"de componentes fora do modelo)")
     fd = fd.dropna(subset=["bloco"]).drop_duplicates(subset=CHAVE + ["bloco"])
     return fd.groupby(["motor", "bloco"]).size().rename("n").reset_index()
 

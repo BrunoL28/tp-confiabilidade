@@ -1,0 +1,28 @@
+codigo,descricao,pistao,turboelice,turbofan
+61,Sistema de hélice (conjunto; pás; cubo; controle; governador; embandeiramento),helice_governador,helice_governador,
+7111,Flapes de arrefecimento da carenagem (pistão),arrefecimento,,
+7112,Defletores de ar do motor (pistão),arrefecimento,,
+7160,Admissão de ar do motor,admissao,entrada_ar,
+7210,Caixa de redução e eixo,,caixa_reducao,
+7220,Entrada de ar do núcleo / fan,,entrada_ar,fan
+7230,Compressor,,compressor,compressores
+7240,Câmara de combustão,,camara_combustao,camara_combustao
+7250,Turbinas,,turbinas,turbinas
+7260,Acionamento de acessórios,,lubrificacao,caixa_acessorios
+7261,Sistema de óleo do motor a turbina,,lubrificacao,lubrificacao
+731,Distribuição de combustível do motor (bicos injetores; resfriador combustível-óleo),carburador_injecao,combustivel_fcu,combustivel
+7314,Bomba de combustível do motor,bombas,combustivel_fcu,combustivel
+732,Controle de combustível (FCU; carburador; divisor),carburador_injecao,combustivel_fcu,combustivel
+7321,Controle eletrônico de combustível (no turbofan: ECU/FADEC),,combustivel_fcu,fadec
+74,Ignição (magnetos; cablagem; velas; chaves),magnetos,,
+7532,Válvula de sangria do compressor,,compressor,compressores
+79,Óleo do motor (instalação na célula),lubrificacao,lubrificacao,lubrificacao
+81,Turbocompressor (pistão),admissao,,
+83,Caixa de acessórios,,lubrificacao,caixa_acessorios
+8510,Motor a pistão - seção frontal,nucleo,,
+8520,Motor a pistão - seção de potência,nucleo,,
+8530,Motor a pistão - cilindros,nucleo,,
+8540,Motor a pistão - seção traseira,nucleo,,
+8550,Motor a pistão - sistema de óleo,lubrificacao,,
+8560,Motor a pistão - compressor de sobrealimentação,admissao,,
+8570,Motor a pistão - arrefecimento líquido,arrefecimento,,
